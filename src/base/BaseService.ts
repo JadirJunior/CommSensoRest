@@ -18,12 +18,13 @@ export abstract class BaseService<M extends Model> implements IService<M> {
     }
 
     public async deleteById(where: WhereOptions<Attributes<M>>): Promise<CommSensoResponse<number>> {
-        const result = await this.model.destroy({ where })
+        const result = await this.model.destroy({ where });
 
         return new CommSensoResponse<number>({ data: result, status: 200, message: 'Deleted with successful' });
     }
 
     public async getAll(attributes ?: any): Promise<CommSensoResponse<M[]>> {
+        
         const result = await this.model.findAll(attributes)
 
         return new CommSensoResponse<M[]>({ data: result, status: 200, message: 'Listed with successful' });

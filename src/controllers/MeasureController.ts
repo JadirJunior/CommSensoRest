@@ -4,6 +4,7 @@ import Measure from "../database/models/Measure";
 import MeasureService from "../services/MeasureService";
 import SensorType from "../database/models/SensorType";
 import Container from "../database/models/Container";
+import { where } from "sequelize";
 
 class MeasureController extends BaseController<Measure> {
     protected readonly service: MeasureService
@@ -19,7 +20,8 @@ class MeasureController extends BaseController<Measure> {
 
             const { value, dtMeasure, sensorId, containerId } = req.body
 
-            const dateMeasure = new Date(dtMeasure)
+            const dateMeasure = new Date(dtMeasure);
+            
             const { message, status, data } = await this.service.add({ value, dtMeasure: dateMeasure, sensorId, containerId })
 
             return res.status(status ?? 200).json({ message, data })
@@ -31,25 +33,41 @@ class MeasureController extends BaseController<Measure> {
 
     async getAll(req: Request, res: Response, next: NextFunction) {
         try {
+
+            const {limit, page, ...query} = req.query;
+
+            const attributes = {
+                limit: limit ? Number(limit) : 10,
+                offset: page ? ((Number(page) - 1) * (req.query.limit ? Number(limit) : 10)) : 0,
+                where: {...query}
+            }
+
+            console.log(attributes);
+
+
+            const { message, status, data } = await this.service.getAll(attributes)
+
+            // const { message, status, data } = await this.service.getAll( 
+            //     {
+            //         attributes: ['id', 'value', 'dtMeasure'],
+            //         include: [
+            //             {
+            //                 model: Container,
+            //                 as: 'container',
+            //                 attributes: ['name', 'quality']
+            //             },
             
-            const { message, status, data } = await this.service.getAll( 
-                {
-                    attributes: ['id', 'value', 'dtMeasure'],
-                    include: [
-                        {
-                            model: Container,
-                            as: 'container',
-                            attributes: ['name', 'quality']
-                        },
-            
-                        {
-                            model: SensorType,
-                            as: 'sensor',
-                            attributes: ['name']
-                        }
-                    ]
-                }
-            )
+            //             {
+            //                 model: SensorType,
+            //                 as: 'sensor',
+            //                 attributes: ['name']
+            //             }
+            //         ],
+
+            //         limit: req.query.limit ? Number(req.query.limit) : 10,
+            //         offset: (page - 1) * (req.query.limit ? Number(req.query.limit) : 10)
+            //     }
+            // )
 
 
             return res.status(status ?? 200).json({ message, data })
