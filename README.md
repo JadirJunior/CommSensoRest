@@ -11,4 +11,6 @@ O projeto tem como objetivo atestar a qualidade de um processo de compostagem re
 - Fósforo
 - Condutividade
 
-Depois de lidos, esses dados serão enviados para um Broker MQTT e então redirecionado para essa Rest API que lida diretamente com o banco de dados e armazenamento dos dados.
+Depois de lidos, esses dados serão enviados para um Broker MQTT e então redirecionado para essa Rest API que lida diretamente com o armazenamento dos dados.
+
+Mais definições e atribuições do projetos serão adicionadas posteriormente.

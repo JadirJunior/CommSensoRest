@@ -42,34 +42,8 @@ class MeasureController extends BaseController<Measure> {
                 where: {...query}
             }
 
-            console.log(attributes);
-
-
-            const { message, status, data } = await this.service.getAll(attributes)
-
-            // const { message, status, data } = await this.service.getAll( 
-            //     {
-            //         attributes: ['id', 'value', 'dtMeasure'],
-            //         include: [
-            //             {
-            //                 model: Container,
-            //                 as: 'container',
-            //                 attributes: ['name', 'quality']
-            //             },
             
-            //             {
-            //                 model: SensorType,
-            //                 as: 'sensor',
-            //                 attributes: ['name']
-            //             }
-            //         ],
-
-            //         limit: req.query.limit ? Number(req.query.limit) : 10,
-            //         offset: (page - 1) * (req.query.limit ? Number(req.query.limit) : 10)
-            //     }
-            // )
-
-
+            const { message, status, data } = await this.service.getAll(attributes);
             return res.status(status ?? 200).json({ message, data })
         } catch (error) {
             next(error)
