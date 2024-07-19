@@ -5,6 +5,7 @@ import MeasureService from "../services/MeasureService";
 import SensorType from "../database/models/SensorType";
 import Container from "../database/models/Container";
 import { where } from "sequelize";
+import ContainerService from "../services/ContainerService";
 
 class MeasureController extends BaseController<Measure> {
     protected readonly service: MeasureService
@@ -18,8 +19,14 @@ class MeasureController extends BaseController<Measure> {
     async create(req: Request, res: Response, next: NextFunction) {
         try {
 
-            const { value, dtMeasure, sensorId, containerId } = req.body
+            const { value, dtMeasure, sensorId, container } = req.body
 
+            const containerId = await new ContainerService().getByName(container).then((response) => response.data?.id ?? -1);
+            
+            if (containerId == -1) {
+                return res.status(404).json({ message: 'Container not found' });
+            }
+            
             const dateMeasure = new Date(dtMeasure);
             
             const { message, status, data } = await this.service.add({ value, dtMeasure: dateMeasure, sensorId, containerId })
