@@ -18,8 +18,13 @@ Container.init({
         allowNull: false
     },
 
-    quality: {
-        type: DataTypes.STRING,
+    valid: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+
+    weigth: {
+        type: DataTypes.FLOAT,
         allowNull: false
     }
 }, {

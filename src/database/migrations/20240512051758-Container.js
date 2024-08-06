@@ -14,10 +14,15 @@ module.exports = {
                 allowNull: false
             },
 
-            quality: {
-                type: Sequelize.STRING,
+            valid: {
+                type: Sequelize.BOOLEAN,
+                defaultValue: false
+            },
+
+            weigth: {
+                type: Sequelize.FLOAT,
                 allowNull: false
-            }
+            },
 
         })
     },
