@@ -54,13 +54,13 @@ class MeasureService extends BaseService<Measure> {
                 {
                     model: Container,
                     as: 'container',
-                    attributes: ['id', 'name', 'quality']
+                    attributes: ['id', 'name', 'weigth', 'valid']
                 },
     
                 {
                     model: SensorType,
                     as: 'sensor',
-                    attributes: ['id', 'name']
+                    attributes: ['id', 'name', 'unit']
                 }
             ],
 
