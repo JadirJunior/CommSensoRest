@@ -20,7 +20,7 @@ export abstract class BaseController<M extends Model> implements IController {
 
 			if (id) {
 				const { status, message, data } = await this.service.getById(
-					Number(id)
+					id as string
 				);
 				return res.status(status ?? 200).json({ message, data });
 			}
@@ -39,7 +39,7 @@ export abstract class BaseController<M extends Model> implements IController {
 	): Promise<Response<M, Record<string, M>> | undefined> {
 		try {
 			const { id } = req.params;
-			const { status, message, data } = await this.service.getById(Number(id));
+			const { status, message, data } = await this.service.getById(id);
 			return res.status(status ?? 200).json({ message, data });
 		} catch (error) {
 			next(error);

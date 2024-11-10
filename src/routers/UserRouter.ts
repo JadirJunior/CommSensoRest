@@ -8,9 +8,9 @@ const control = new UserController(new UserService());
 const userRouter = Router();
 
 userRouter.get("/users", control.getAll.bind(control));
-userRouter.get("/user/:id", control.getById.bind(control));
+userRouter.get("/users/:id", control.getById.bind(control));
+userRouter.post("/users", control.createUser.bind(control));
 
-userRouter.get("/login", control.login.bind(control));
-userRouter.post("/create", control.create.bind(control));
+userRouter.post("/users/login", control.login.bind(control));
 
 export default userRouter;

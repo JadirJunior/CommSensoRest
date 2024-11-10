@@ -1,9 +1,9 @@
-import { ModelStatic } from "sequelize";
+import { ModelStatic, UUID, UUIDV4 } from "sequelize";
 import { BaseService } from "../base/BaseService";
 import User from "../database/models/User";
 import { CommSensoResponse } from "../utils/CommSensoResponse";
 import { compareHash, generateHash } from "../utils/cripto";
-
+import { v4 } from "uuid";
 class UserService extends BaseService<User> {
 	protected model: ModelStatic<User> = User;
 
@@ -20,7 +20,6 @@ class UserService extends BaseService<User> {
 				username,
 			},
 		});
-
 		if (!user) {
 			return {
 				status: 404,
@@ -65,6 +64,7 @@ class UserService extends BaseService<User> {
 		const hash = generateHash(password);
 
 		const newUser = await this.model.create({
+			id: v4(),
 			username,
 			password: hash,
 		});
