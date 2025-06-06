@@ -1,14 +1,26 @@
-version: "3.8"
 services:
+  rest_api:
+    container_name: commsenso_api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: commsenso_api:latest
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - db
+    restart: unless-stopped
   db:
-    container_name: commsenso
+    container_name: commsenso_db
     tty: true
     image: postgres:17.0
     volumes:
       - .docker/dbdata:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=admin
-      - POSTGRES_DB=commsensodb
+    env_file:
+      - .env
     ports:
       - "5432:5432"
