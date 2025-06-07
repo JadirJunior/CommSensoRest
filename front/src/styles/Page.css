@@ -1,0 +1,148 @@
+/* Page Styles */
+.page {
+  min-height: 80vh;
+  padding: 80px 0;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.page-header h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #2c5530;
+  margin-bottom: 20px;
+}
+
+.page-header p {
+  font-size: 1.2rem;
+  color: #666;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.content section {
+  margin-bottom: 40px;
+}
+
+.content h2 {
+  font-size: 2rem;
+  color: #2c5530;
+  margin-bottom: 20px;
+}
+
+.content p {
+  margin-bottom: 16px;
+  line-height: 1.7;
+  color: #555;
+}
+
+.content ul {
+  margin-left: 20px;
+  margin-bottom: 16px;
+}
+
+.content li {
+  margin-bottom: 8px;
+  color: #555;
+}
+
+/* Timeline */
+.timeline {
+  position: relative;
+  margin: 40px 0;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 30px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, #4CAF50, #66BB6A);
+}
+
+.timeline-item {
+  display: flex;
+  margin-bottom: 40px;
+  align-items: flex-start;
+}
+
+.timeline-icon {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(45deg, #4CAF50, #66BB6A);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  margin-right: 30px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.timeline-content {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #4CAF50;
+}
+
+.timeline-content h3 {
+  color: #2c5530;
+  margin-bottom: 15px;
+  font-size: 1.3rem;
+}
+
+/* Mission/Vision sections */
+.mission, .vision {
+  background: #f8f9fa;
+  padding: 40px;
+  border-radius: 12px;
+  margin: 40px 0;
+  border-left: 4px solid #4CAF50;
+}
+
+.mission h2, .vision h2 {
+  color: #2c5530;
+  margin-bottom: 20px;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .page {
+    padding: 60px 0;
+  }
+
+  .page-header h1 {
+    font-size: 2.5rem;
+  }
+
+  .timeline::before {
+    left: 20px;
+  }
+
+  .timeline-icon {
+    width: 40px;
+    height: 40px;
+    margin-right: 20px;
+  }
+
+  .timeline-content {
+    padding: 20px;
+  }
+
+  .mission, .vision {
+    padding: 30px 20px;
+  }
+} 

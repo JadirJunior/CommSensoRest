@@ -1,0 +1,261 @@
+/* Time Page Styles */
+.time-page {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.team-intro {
+  background: white;
+  padding: 60px 40px;
+  border-radius: 16px;
+  margin-bottom: 60px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.intro-content h2 {
+  color: #2c5530;
+  margin-bottom: 20px;
+  font-size: 2.2rem;
+}
+
+.intro-content p {
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: #555;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 30px;
+  margin-bottom: 80px;
+}
+
+.team-card {
+  background: white;
+  border-radius: 16px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(44, 85, 48, 0.1);
+}
+
+.team-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.member-avatar {
+  margin-bottom: 20px;
+}
+
+.avatar-emoji {
+  font-size: 4rem;
+  display: inline-block;
+  padding: 20px;
+  background: linear-gradient(45deg, #4CAF50, #66BB6A);
+  border-radius: 50%;
+  margin-bottom: 20px;
+}
+
+.member-info h3 {
+  color: #2c5530;
+  font-size: 1.4rem;
+  margin-bottom: 8px;
+}
+
+.member-info h4 {
+  color: #4CAF50;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.member-info p {
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.specialties {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.specialty-tag {
+  background: linear-gradient(45deg, #4CAF50, #66BB6A);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.member-links {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.contact-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: #f8f9fa;
+  border-radius: 50%;
+  color: #2c5530;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.contact-link:hover {
+  background: #4CAF50;
+  color: white;
+  transform: scale(1.1);
+}
+
+.team-stats {
+  background: white;
+  padding: 60px 40px;
+  border-radius: 16px;
+  margin-bottom: 60px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 40px;
+}
+
+.stat-card {
+  text-align: center;
+  padding: 30px 20px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(45deg, #4CAF50, #66BB6A);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  color: white;
+}
+
+.stat-content h3 {
+  font-size: 2.5rem;
+  color: #2c5530;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.stat-content p {
+  color: #666;
+  font-weight: 500;
+}
+
+.join-team {
+  background: linear-gradient(135deg, #2c5530 0%, #3d7c47 100%);
+  color: white;
+  padding: 80px 40px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.join-team h2 {
+  font-size: 2.2rem;
+  margin-bottom: 20px;
+}
+
+.join-team p {
+  font-size: 1.1rem;
+  margin-bottom: 40px;
+  opacity: 0.9;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.join-buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.join-buttons .btn {
+  padding: 16px 32px;
+  font-size: 1.1rem;
+}
+
+.join-buttons .btn-secondary {
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.join-buttons .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .team-intro {
+    padding: 40px 20px;
+  }
+  
+  .intro-content h2 {
+    font-size: 1.8rem;
+  }
+  
+  .team-card {
+    padding: 20px;
+  }
+  
+  .avatar-emoji {
+    font-size: 3rem;
+    padding: 15px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .team-stats {
+    padding: 40px 20px;
+  }
+  
+  .join-team {
+    padding: 60px 20px;
+  }
+  
+  .join-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+} 
