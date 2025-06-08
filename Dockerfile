@@ -15,14 +15,15 @@ FROM node:18-alpine
 
 WORKDIR /usr/src/app
 
-COPY --from=builder /usr/src/app/node_modules ./node_modules
-
-COPY --from=builder /usr/src/app/dist ./dist
-
-# COPY --from=builder /usr/src/app/package.json ./package.json
-# COPY --from=builder /usr/src/app/package-lock.json ./package-lock.json
 
 ENV NODE_ENV=production
+
+
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+COPY --from=builder /usr/src/app/dist ./dist
+COPY --from=builder /usr/src/app/package*.json ./
+COPY --from=builder /usr/src/app/.sequelizerc ./.sequelizerc
+COPY --from=builder /usr/src/app/src/database/migrations ./src/database/migrations
 
 EXPOSE 3000
 
