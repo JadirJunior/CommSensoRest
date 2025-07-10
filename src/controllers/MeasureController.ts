@@ -4,6 +4,15 @@ import Measure from "../database/models/Measure";
 import MeasureService from "../services/MeasureService";
 import ContainerService from "../services/ContainerService";
 
+type MeasureOrderBy = {
+	field: Field;
+	direction: Direction;
+};
+
+const validFields = ["value", "dtMeasure", "sensorId", "containerId"] as const;
+type Field = (typeof validFields)[number];
+type Direction = "ASC" | "DESC";
+
 class MeasureController extends BaseController<Measure> {
 	protected readonly service: MeasureService;
 
@@ -41,9 +50,22 @@ class MeasureController extends BaseController<Measure> {
 
 	async getAll(req: Request, res: Response, next: NextFunction) {
 		try {
-			console.log("Entrou aqui");
-
 			const { limit, page, ...query } = req.query;
+
+			const { orderBy }: { orderBy?: MeasureOrderBy } = req.body;
+
+			const { field, direction } = orderBy as {
+				field: Field;
+				direction: Direction;
+			};
+			let orderClause: [[Field, Direction]] = [["dtMeasure", "DESC"]];
+
+			if (
+				validFields.includes(field) &&
+				(direction === "ASC" || direction === "DESC")
+			) {
+				orderClause = [[field, direction]];
+			}
 
 			const attributes = {
 				limit: limit ? Number(limit) : 10,
@@ -51,6 +73,7 @@ class MeasureController extends BaseController<Measure> {
 					? (Number(page) - 1) * (req.query.limit ? Number(limit) : 10)
 					: 0,
 				where: { ...query },
+				orderBy: orderClause,
 			};
 
 			const { message, status, data } = await this.service.getAll(attributes);

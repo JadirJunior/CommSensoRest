@@ -5,75 +5,75 @@ import { CommSensoResponse } from "../utils/CommSensoResponse";
 import Container from "../database/models/Container";
 import SensorType from "../database/models/SensorType";
 
-
 class MeasureService extends BaseService<Measure> {
-    protected model: ModelStatic<Measure> = Measure
+	protected model: ModelStatic<Measure> = Measure;
 
-    
-    constructor() {
-        super(Measure)
-    }
+	constructor() {
+		super(Measure);
+	}
 
-    public async getAll(attributes ?: any): Promise<CommSensoResponse<Measure[]>> {
+	public async getAll(attributes?: any): Promise<CommSensoResponse<Measure[]>> {
+		const where = attributes.where;
 
-        const where = attributes.where;
+		var whereAdds = {};
 
-        var whereAdds = {}
+		console.log("Atributos: ", attributes);
 
-        if (where) {
-            
-            if (where.dtMeasure) {
-                where.dtMeasure = new Date(where.dtMeasure);
+		if (where) {
+			if (where.dtMeasure) {
+				where.dtMeasure = new Date(where.dtMeasure);
 
+				whereAdds = {
+					...whereAdds,
+					dtMeasure: where.dtMeasure,
+				};
+			}
 
-                whereAdds = {
-                    ...whereAdds,
-                    dtMeasure: where.dtMeasure
-                }
-            }
+			if (where.container) {
+				whereAdds = {
+					...whereAdds,
+					"$container.name$": where.container,
+				};
+			}
 
-            if (where.container) {
-                whereAdds = {
-                    ...whereAdds,
-                    '$container.name$': where.container
-                }
-            }
+			if (where.sensor) {
+				whereAdds = {
+					...whereAdds,
+					"$sensor.name$": where.sensor,
+				};
+			}
+		}
 
-            if (where.sensor) { 
-                whereAdds = {
-                    ...whereAdds,
-                    '$sensor.name$': where.sensor
-                }
-            }
-        }
-        
+		const result = await this.model.findAll({
+			attributes: ["id", "value", "dtMeasure"],
+			include: [
+				{
+					model: Container,
+					as: "container",
+					attributes: ["id", "name", "weigth", "valid"],
+				},
 
-        const result = await this.model.findAll({
-            attributes: ['id', 'value', 'dtMeasure'],
-            include: [
-                {
-                    model: Container,
-                    as: 'container',
-                    attributes: ['id', 'name', 'weigth', 'valid']
-                },
-    
-                {
-                    model: SensorType,
-                    as: 'sensor',
-                    attributes: ['id', 'name', 'unit']
-                }
-            ],
+				{
+					model: SensorType,
+					as: "sensor",
+					attributes: ["id", "name", "unit"],
+				},
+			],
 
-            limit: attributes.limit ? Number(attributes.limit) : 10,
-            offset: attributes.offset ? Number(attributes.offset) : 0,
+			limit: attributes.limit ? Number(attributes.limit) : 10,
+			offset: attributes.offset ? Number(attributes.offset) : 0,
 
-            where: whereAdds
-        })
+			where: whereAdds,
 
-        return new CommSensoResponse<Measure[]>({ data: result, status: 200, message: 'Listed with successful' });
-    }
+			order: attributes.orderBy,
+		});
 
+		return new CommSensoResponse<Measure[]>({
+			data: result,
+			status: 200,
+			message: "Listed with successful",
+		});
+	}
 }
 
-
-export default MeasureService
+export default MeasureService;
