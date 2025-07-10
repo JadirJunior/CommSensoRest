@@ -74,6 +74,46 @@ class MeasureService extends BaseService<Measure> {
 			message: "Listed with successful",
 		});
 	}
+
+	public async search(filters?: any): Promise<CommSensoResponse<Measure[]>> {
+		const where: any = {};
+
+		// if (filters) {
+		// 	if (filters.dtMeasure) {
+		// 		where.dtMeasure = new Date(filters.dtMeasure);
+		// 	}
+
+		// 	if (filters.container) {
+		// 		where.containerId = filters.container;
+		// 	}
+
+		// 	if (filters.sensor) {
+		// 		where.sensorId = filters.sensor;
+		// 	}
+		// }
+
+		// const result = await this.model.findAll({
+		// 	where,
+		// 	include: [
+		// 		{
+		// 			model: Container,
+		// 			as: "container",
+		// 			attributes: ["id", "name", "weigth", "valid"],
+		// 		},
+		// 		{
+		// 			model: SensorType,
+		// 			as: "sensor",
+		// 			attributes: ["id", "name", "unit"],
+		// 		},
+		// 	],
+		// });
+
+		return new CommSensoResponse<Measure[]>({
+			data: [],
+			status: 200,
+			message: "Not implemented yet",
+		});
+	}
 }
 
 export default MeasureService;

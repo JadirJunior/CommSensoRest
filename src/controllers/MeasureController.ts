@@ -50,21 +50,37 @@ class MeasureController extends BaseController<Measure> {
 
 	async getAll(req: Request, res: Response, next: NextFunction) {
 		try {
-			const { limit, page, ...query } = req.query;
+			const { limit, page, orderBy, ...query } = req.query;
 
-			const { orderBy }: { orderBy?: MeasureOrderBy } = req.body;
+			let orderClause: [Field, Direction][] = [["dtMeasure", "DESC"]];
 
-			const { field, direction } = orderBy as {
-				field: Field;
-				direction: Direction;
-			};
-			let orderClause: [[Field, Direction]] = [["dtMeasure", "DESC"]];
+			if (typeof orderBy === "string") {
+				const parts = orderBy.split(":");
+				if (parts.length !== 2) {
+					return res.status(400).json({
+						message: "Formato inválido para orderBy. Use 'field:direction'.",
+					});
+				}
 
-			if (
-				validFields.includes(field) &&
-				(direction === "ASC" || direction === "DESC")
-			) {
-				orderClause = [[field, direction]];
+				const [rawField, rawDir] = parts;
+				const dir = rawDir.toUpperCase() as Direction;
+
+				if (!validFields.includes(rawField as Field)) {
+					return res.status(400).json({
+						message: `Campo inválido em orderBy. Permitidos: ${validFields.join(
+							", "
+						)}.`,
+					});
+				}
+
+				if (dir !== "ASC" && dir !== "DESC") {
+					return res.status(400).json({
+						message: "Direção inválida em orderBy. Use 'ASC' ou 'DESC'.",
+					});
+				}
+
+				// === aqui a mágica: monta o array que o Sequelize espera ===
+				orderClause = [[rawField as Field, dir]];
 			}
 
 			const attributes = {
@@ -77,6 +93,17 @@ class MeasureController extends BaseController<Measure> {
 			};
 
 			const { message, status, data } = await this.service.getAll(attributes);
+			return res.status(status ?? 200).json({ message, data });
+		} catch (error) {
+			next(error);
+		}
+	}
+
+	async search(req: Request, res: Response, next: NextFunction) {
+		try {
+			const filters = req.body;
+
+			const { message, status, data } = await this.service.search(filters);
 			return res.status(status ?? 200).json({ message, data });
 		} catch (error) {
 			next(error);
