@@ -72,17 +72,4 @@ export abstract class BaseController<M extends Model> implements IController {
 			res.status(500).json({ message: "Internal server error" });
 		}
 	}
-
-	// async update(req: Request, res: Response, next: NextFunction): Promise<Response<any, Record<string, any>> | undefined> {
-	//     try {
-	//         const { id } = req.params;
-	//         const attributes = req.body;
-	//         console.log(id)
-	//         const { message, status } = await this.service.update({ where: { id: Number(id) } }, attributes)
-	//         return res.status(status ?? 200).json({message})
-
-	//     } catch (error) {
-	//         next(error)
-	//     }
-	// }
 }

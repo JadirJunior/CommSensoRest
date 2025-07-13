@@ -39,7 +39,9 @@ export abstract class BaseService<M extends Model> implements IService<M> {
 		});
 	}
 
-	public async getAll(attributes?: any): Promise<CommSensoResponse<M[]>> {
+	public async getAll(
+		attributes?: any
+	): Promise<CommSensoResponse<M[] | any[]>> {
 		const result = await this.model.findAll(attributes);
 
 		return new CommSensoResponse<M[]>({

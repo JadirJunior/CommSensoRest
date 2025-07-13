@@ -1,20 +1,23 @@
-
-
-
 export type Data<TObject> = TObject;
 
 export class CommSensoResponse<TObject> {
+	message?: string;
 
-    message?: string
+	data?: Data<TObject>;
 
-    data ?: Data<TObject>
-    
-    status ?: number
+	total?: number;
 
+	status?: number;
 
-    constructor(props ?: { data ?: Data<TObject>, message ?: string, status ?: number }) {
-        this.data = props?.data
-        this.message = props?.message
-        this.status = props?.status
-    }
+	constructor(props?: {
+		data?: Data<TObject>;
+		message?: string;
+		status?: number;
+		total?: number;
+	}) {
+		this.data = props?.data;
+		this.message = props?.message;
+		this.status = props?.status;
+		this.total = props?.total;
+	}
 }

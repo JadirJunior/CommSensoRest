@@ -5,6 +5,22 @@ import { CommSensoResponse } from "../utils/CommSensoResponse";
 import Container from "../database/models/Container";
 import SensorType from "../database/models/SensorType";
 import dayjs from "dayjs";
+import { GetMeasureResponse } from "../utils/dto/types";
+
+interface GetAllMeasuresFilters {
+	limit?: number;
+	offset?: number;
+	orderBy?: any;
+	container?: string;
+	sensor?: string;
+	startDate?: string;
+	endDate?: string;
+}
+
+interface MeasureWithAssociations extends Measure {
+	sensor: SensorType;
+	container: Container;
+}
 
 class MeasureService extends BaseService<Measure> {
 	protected model: ModelStatic<Measure> = Measure;
@@ -13,137 +29,96 @@ class MeasureService extends BaseService<Measure> {
 		super(Measure);
 	}
 
-	public async getAll(attributes?: any): Promise<CommSensoResponse<Measure[]>> {
-		const where = attributes.where;
-
-		var whereAdds: any = {};
-
-		if (where) {
-			if (where.dtMeasure) {
-				where.dtMeasure = new Date(where.dtMeasure);
-
-				whereAdds = {
-					...whereAdds,
-					dtMeasure: where.dtMeasure,
-				};
-			}
-
-			if (where.container) {
-				whereAdds = {
-					...whereAdds,
-					"$container.name$": where.container,
-				};
-			}
-
-			if (where.sensor) {
-				whereAdds = {
-					...whereAdds,
-					"$sensor.name$": where.sensor,
-				};
-			}
-		}
-
-		if (attributes.startDate) {
-			whereAdds = {
-				...whereAdds,
-				dtMeasure: {
-					[Op.gte]: attributes.startDate,
-				},
-			};
-		}
-
-		if (attributes.endDate) {
-			whereAdds = {
-				...whereAdds,
-				dtMeasure: {
-					...(whereAdds.dtMeasure ? whereAdds?.dtMeasure! : {}),
-					[Op.lte]: attributes.endDate,
-				},
-			};
-		}
-
-		console.log("whereAdds", whereAdds);
-
+	public async list(
+		filters: GetAllMeasuresFilters
+	): Promise<CommSensoResponse<GetMeasureResponse[]>> {
 		if (
-			attributes.startDate &&
-			attributes.endDate &&
-			dayjs(attributes.startDate).isAfter(dayjs(attributes.endDate))
+			filters.startDate &&
+			filters.endDate &&
+			dayjs(filters.startDate).isAfter(dayjs(filters.endDate))
 		) {
-			return new CommSensoResponse<Measure[]>({
+			return new CommSensoResponse<GetMeasureResponse[]>({
 				data: [],
 				status: 400,
-				message: "Start date cannot be after end date",
+				message: "A data inicial não pode ser posterior à data final.",
 			});
 		}
 
-		const result = await this.model.findAll({
+		const whereClause: any = {};
+		if (filters.container) {
+			whereClause["$container.name$"] = filters.container;
+		}
+		if (filters.sensor) {
+			whereClause["$sensor.name$"] = filters.sensor;
+		}
+
+		const dateConditions: any = {};
+		if (filters.startDate) {
+			dateConditions[Op.gte] = filters.startDate;
+		}
+		if (filters.endDate) {
+			dateConditions[Op.lte] = dayjs(filters.endDate)
+				.endOf("day")
+				.toISOString();
+		}
+		if (Object.keys(dateConditions).length > 0) {
+			whereClause.dtMeasure = dateConditions;
+		}
+
+		const includeOptions = [
+			{
+				model: Container,
+				as: "container",
+				attributes: ["id", "name", "weigth", "valid"],
+				required: !!filters.container,
+			},
+			{
+				model: SensorType,
+				as: "sensor",
+				attributes: ["id", "name", "unit"],
+				required: !!filters.sensor,
+			},
+		];
+
+		const result = await (
+			this.model as ModelStatic<MeasureWithAssociations>
+		).findAll({
 			attributes: ["id", "value", "dtMeasure"],
-			include: [
-				{
-					model: Container,
-					as: "container",
-					attributes: ["id", "name", "weigth", "valid"],
-				},
-
-				{
-					model: SensorType,
-					as: "sensor",
-					attributes: ["id", "name", "unit"],
-				},
-			],
-
-			limit: attributes.limit ? Number(attributes.limit) : 10,
-			offset: attributes.offset ? Number(attributes.offset) : 0,
-
-			where: whereAdds,
-
-			order: attributes.orderBy,
+			include: includeOptions,
+			where: whereClause,
+			limit: filters.limit ? Number(filters.limit) : 10,
+			offset: filters.offset ? Number(filters.offset) : 0,
+			order: filters.orderBy,
 		});
 
-		return new CommSensoResponse<Measure[]>({
-			data: result,
-			status: 200,
-			message: "Listed with successful",
+		const total = await this.model.count({
+			where: whereClause,
+			include: includeOptions,
+			distinct: true,
 		});
-	}
 
-	public async search(filters?: any): Promise<CommSensoResponse<Measure[]>> {
-		const where: any = {};
+		const formattedData: GetMeasureResponse[] = result.map((measure) => ({
+			id: measure.id,
+			value: measure.value,
+			dtMeasure: measure.dtMeasure.toISOString(),
+			sensor: {
+				id: measure.sensor.id,
+				name: measure.sensor.name,
+				unit: measure.sensor.unit,
+			},
+			container: {
+				id: measure.container.id,
+				name: measure.container.name,
+				weight: measure.container.weight,
+				valid: measure.container.valid,
+			},
+		}));
 
-		// if (filters) {
-		// 	if (filters.dtMeasure) {
-		// 		where.dtMeasure = new Date(filters.dtMeasure);
-		// 	}
-
-		// 	if (filters.container) {
-		// 		where.containerId = filters.container;
-		// 	}
-
-		// 	if (filters.sensor) {
-		// 		where.sensorId = filters.sensor;
-		// 	}
-		// }
-
-		// const result = await this.model.findAll({
-		// 	where,
-		// 	include: [
-		// 		{
-		// 			model: Container,
-		// 			as: "container",
-		// 			attributes: ["id", "name", "weigth", "valid"],
-		// 		},
-		// 		{
-		// 			model: SensorType,
-		// 			as: "sensor",
-		// 			attributes: ["id", "name", "unit"],
-		// 		},
-		// 	],
-		// });
-
-		return new CommSensoResponse<Measure[]>({
-			data: [],
+		return new CommSensoResponse<GetMeasureResponse[]>({
+			data: formattedData,
+			total: total,
 			status: 200,
-			message: "Not implemented yet",
+			message: "Medições listadas com sucesso.",
 		});
 	}
 }
