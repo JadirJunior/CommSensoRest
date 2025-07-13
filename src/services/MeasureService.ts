@@ -16,7 +16,7 @@ class MeasureService extends BaseService<Measure> {
 	public async getAll(attributes?: any): Promise<CommSensoResponse<Measure[]>> {
 		const where = attributes.where;
 
-		var whereAdds = {};
+		var whereAdds: any = {};
 
 		if (where) {
 			if (where.dtMeasure) {
@@ -56,10 +56,13 @@ class MeasureService extends BaseService<Measure> {
 			whereAdds = {
 				...whereAdds,
 				dtMeasure: {
+					...(whereAdds.dtMeasure ? whereAdds?.dtMeasure! : {}),
 					[Op.lte]: attributes.endDate,
 				},
 			};
 		}
+
+		console.log("whereAdds", whereAdds);
 
 		if (
 			attributes.startDate &&
