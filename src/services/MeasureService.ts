@@ -54,13 +54,16 @@ class MeasureService extends BaseService<Measure> {
 
 		const dateConditions: any = {};
 		if (filters.startDate) {
-			dateConditions[Op.gte] = filters.startDate;
+			dateConditions[Op.gte] = dayjs(filters.startDate)
+				.startOf("day")
+				.toISOString();
 		}
 		if (filters.endDate) {
 			dateConditions[Op.lte] = dayjs(filters.endDate)
 				.endOf("day")
 				.toISOString();
 		}
+
 		if (Object.keys(dateConditions).length > 0) {
 			whereClause.dtMeasure = dateConditions;
 		}
