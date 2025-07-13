@@ -3,6 +3,7 @@ import { BaseController } from "../base/BaseController";
 import Measure from "../database/models/Measure";
 import MeasureService from "../services/MeasureService";
 import ContainerService from "../services/ContainerService";
+import dayjs from "dayjs";
 
 type MeasureOrderBy = {
 	field: Field;
@@ -50,7 +51,7 @@ class MeasureController extends BaseController<Measure> {
 
 	async getAll(req: Request, res: Response, next: NextFunction) {
 		try {
-			const { limit, page, orderBy, ...query } = req.query;
+			const { limit, page, orderBy, startDate, endDate, ...query } = req.query;
 
 			let orderClause: [Field, Direction][] = [["dtMeasure", "DESC"]];
 
@@ -79,7 +80,6 @@ class MeasureController extends BaseController<Measure> {
 					});
 				}
 
-				// === aqui a mágica: monta o array que o Sequelize espera ===
 				orderClause = [[rawField as Field, dir]];
 			}
 
@@ -90,6 +90,12 @@ class MeasureController extends BaseController<Measure> {
 					: 0,
 				where: { ...query },
 				orderBy: orderClause,
+				startDate: startDate
+					? dayjs(String(startDate)).startOf("day").toDate()
+					: undefined,
+				endDate: endDate
+					? dayjs(String(endDate)).endOf("day").toDate()
+					: undefined,
 			};
 
 			const { message, status, data } = await this.service.getAll(attributes);

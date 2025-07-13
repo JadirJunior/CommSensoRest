@@ -1,9 +1,10 @@
-import { ModelStatic } from "sequelize";
+import { ModelStatic, Op } from "sequelize";
 import Measure from "../database/models/Measure";
 import { BaseService } from "../base/BaseService";
 import { CommSensoResponse } from "../utils/CommSensoResponse";
 import Container from "../database/models/Container";
 import SensorType from "../database/models/SensorType";
+import dayjs from "dayjs";
 
 class MeasureService extends BaseService<Measure> {
 	protected model: ModelStatic<Measure> = Measure;
@@ -16,8 +17,6 @@ class MeasureService extends BaseService<Measure> {
 		const where = attributes.where;
 
 		var whereAdds = {};
-
-		console.log("Atributos: ", attributes);
 
 		if (where) {
 			if (where.dtMeasure) {
@@ -42,6 +41,36 @@ class MeasureService extends BaseService<Measure> {
 					"$sensor.name$": where.sensor,
 				};
 			}
+		}
+
+		if (attributes.startDate) {
+			whereAdds = {
+				...whereAdds,
+				dtMeasure: {
+					[Op.gte]: attributes.startDate,
+				},
+			};
+		}
+
+		if (attributes.endDate) {
+			whereAdds = {
+				...whereAdds,
+				dtMeasure: {
+					[Op.lte]: attributes.endDate,
+				},
+			};
+		}
+
+		if (
+			attributes.startDate &&
+			attributes.endDate &&
+			dayjs(attributes.startDate).isAfter(dayjs(attributes.endDate))
+		) {
+			return new CommSensoResponse<Measure[]>({
+				data: [],
+				status: 400,
+				message: "Start date cannot be after end date",
+			});
 		}
 
 		const result = await this.model.findAll({
