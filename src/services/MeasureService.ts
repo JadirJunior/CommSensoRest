@@ -51,7 +51,6 @@ class MeasureService extends BaseService<Measure> {
 		if (filters.sensor) {
 			whereClause["$sensor.name$"] = filters.sensor;
 		}
-
 		const dateConditions: any = {};
 		if (filters.startDate) {
 			dateConditions[Op.gte] = dayjs(filters.startDate)
@@ -64,7 +63,7 @@ class MeasureService extends BaseService<Measure> {
 				.toISOString();
 		}
 
-		if (Object.keys(dateConditions).length > 0) {
+		if (dateConditions[Op.gte] || dateConditions[Op.lte]) {
 			whereClause.dtMeasure = dateConditions;
 		}
 
