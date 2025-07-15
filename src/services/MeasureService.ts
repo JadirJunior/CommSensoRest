@@ -1,4 +1,4 @@
-import { ModelStatic, Op } from "sequelize";
+import { col, fn, ModelStatic, Op, where } from "sequelize";
 import Measure from "../database/models/Measure";
 import { BaseService } from "../base/BaseService";
 import { CommSensoResponse } from "../utils/CommSensoResponse";
@@ -49,8 +49,19 @@ class MeasureService extends BaseService<Measure> {
 			whereClause["$container.name$"] = filters.container;
 		}
 		if (filters.sensor) {
-			whereClause["$sensor.name$"] = filters.sensor;
+			const sensorNames = filters.sensor.split(",").map((s) =>
+				s
+					.trim()
+					.normalize("NFD")
+					.replace(/[\u0300-\u036f]/g, "")
+					.toLowerCase()
+			);
+
+			whereClause[Op.or] = sensorNames.map((name) =>
+				where(fn("unaccent", fn("LOWER", col("sensor.name"))), name)
+			);
 		}
+
 		const dateConditions: any = {};
 		if (filters.startDate) {
 			dateConditions[Op.gte] = dayjs(filters.startDate)
