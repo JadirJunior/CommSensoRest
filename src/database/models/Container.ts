@@ -26,7 +26,7 @@ Container.init(
 			defaultValue: false,
 		},
 
-		weigth: {
+		weight: {
 			type: DataTypes.FLOAT,
 			allowNull: false,
 		},
