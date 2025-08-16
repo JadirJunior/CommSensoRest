@@ -6,54 +6,62 @@ module.exports = {
 		await queryInterface.createTable("device", {
 			id: {
 				type: Sequelize.UUID,
-				defaultValue: Sequelize.literal("gen_random_uuid()"),
+				defaultValue: Sequelize.UUIDV4,
 				primaryKey: true,
 			},
 			name: {
 				type: Sequelize.STRING(120),
 				allowNull: false,
 			},
-			mac_address: {
+			macAddress: {
 				type: Sequelize.STRING(12),
 				allowNull: false,
 				unique: true,
+				field: "mac_address",
 			},
-			mqtt_client_id: {
+			mqttClientId: {
 				type: Sequelize.STRING(64),
 				allowNull: false,
 				unique: true,
+				field: "mqtt_client_id",
 			},
 			status: {
-				type: Sequelize.ENUM("provisioned", "registered", "active", "blocked"),
+				type: Sequelize.ENUM("provisioned", "active", "blocked"),
 				allowNull: false,
 				defaultValue: "provisioned",
 			},
-			is_active: {
-				type: Sequelize.BOOLEAN,
+			activatedAt: {
+				type: Sequelize.DATE,
+				allowNull: true,
+				field: "activated_at",
+			},
+			blockedAt: {
+				type: Sequelize.DATE,
 				allowNull: false,
-				defaultValue: true,
+				field: "blocked_at",
 			},
-			registered_at: {
-				type: Sequelize.DATE,
-				allowNull: true,
-			},
-			last_seen_at: {
-				type: Sequelize.DATE,
-				allowNull: true,
-			},
-			owner_user_id: {
+			ownerUserId: {
 				type: Sequelize.UUID,
 				allowNull: true,
-				references: { model: "user", key: "id" },
+				field: "owner_user_id",
+				references: {
+					model: "user",
+					key: "id",
+				},
 				onUpdate: "CASCADE",
 				onDelete: "SET NULL",
 			},
 		});
 
+		// Índices para as colunas
+		await queryInterface.addIndex("device", ["mac_address"]);
+		await queryInterface.addIndex("device", ["mqtt_client_id"]);
 		await queryInterface.addIndex("device", ["status"]);
 	},
 
 	async down(queryInterface, Sequelize) {
+		await queryInterface.removeIndex("device", ["mac_address"]);
+		await queryInterface.removeIndex("device", ["mqtt_client_id"]);
 		await queryInterface.removeIndex("device", ["status"]);
 		await queryInterface.dropTable("device");
 		await queryInterface.sequelize.query(

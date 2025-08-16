@@ -5,6 +5,7 @@ class User extends Model {
 	declare id: string;
 	declare username: string;
 	declare password: string;
+	declare role: string;
 }
 
 User.init(
@@ -22,6 +23,12 @@ User.init(
 		password: {
 			type: DataTypes.STRING,
 			allowNull: false,
+		},
+
+		role: {
+			type: DataTypes.ENUM("user", "admin"),
+			allowNull: false,
+			defaultValue: "user",
 		},
 	},
 	{

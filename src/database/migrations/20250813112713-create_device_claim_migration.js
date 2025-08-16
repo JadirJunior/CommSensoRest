@@ -6,94 +6,70 @@ module.exports = {
 		await queryInterface.createTable("device_claim", {
 			id: {
 				type: Sequelize.UUID,
-				defaultValue: Sequelize.literal("gen_random_uuid()"),
+				defaultValue: Sequelize.UUIDV4,
 				primaryKey: true,
 			},
-			device_id: {
+			deviceId: {
 				type: Sequelize.UUID,
 				allowNull: true,
-				references: { model: "device", key: "id" },
+				references: {
+					model: "device",
+					key: "id",
+				},
 				onUpdate: "CASCADE",
-				onDelete: "SET NULL",
+				onDelete: "CASCADE",
+				field: "device_id",
 			},
-			code_hash: {
+			codeHash: {
 				type: Sequelize.STRING(255),
 				allowNull: false,
 				unique: true,
-			},
-			salt: {
-				type: Sequelize.STRING(255),
-				allowNull: true,
-			},
-			type: {
-				type: Sequelize.ENUM("provision", "rekey", "reset", "generic"),
-				allowNull: false,
-				defaultValue: "provision",
+				field: "code_hash",
 			},
 			status: {
 				type: Sequelize.ENUM("issued", "redeemed", "expired", "revoked"),
 				allowNull: false,
 				defaultValue: "issued",
 			},
-			max_uses: {
-				type: Sequelize.INTEGER,
-				allowNull: false,
-				defaultValue: 1,
-			},
-			uses: {
-				type: Sequelize.INTEGER,
-				allowNull: false,
-				defaultValue: 0,
-			},
-			expires_at: {
+			expiresAt: {
 				type: Sequelize.DATE,
 				allowNull: true,
+				field: "expires_at",
 			},
-			issued_by_user_id: {
+			issuedByUserId: {
 				type: Sequelize.UUID,
 				allowNull: true,
-				references: { model: "user", key: "id" },
+				references: {
+					model: "user",
+					key: "id",
+				},
 				onUpdate: "CASCADE",
 				onDelete: "SET NULL",
+				field: "issued_by_user_id",
 			},
-			redeemed_by_device_id: {
-				type: Sequelize.UUID,
-				allowNull: true,
-				references: { model: "device", key: "id" },
-				onUpdate: "CASCADE",
-				onDelete: "SET NULL",
-			},
-			metadata: {
-				type: Sequelize.JSONB,
-				allowNull: true,
-			},
-			created_at: {
+			createdAt: {
 				type: Sequelize.DATE,
 				allowNull: false,
-				defaultValue: Sequelize.fn("now"),
+				field: "created_at",
 			},
-			updated_at: {
+			updatedAt: {
 				type: Sequelize.DATE,
 				allowNull: false,
-				defaultValue: Sequelize.fn("now"),
+				field: "updated_at",
 			},
 		});
 
+		// Índices
 		await queryInterface.addIndex("device_claim", ["device_id"]);
 		await queryInterface.addIndex("device_claim", ["status"]);
-		await queryInterface.addIndex("device_claim", ["type"]);
 		await queryInterface.addIndex("device_claim", ["expires_at"]);
 	},
 
 	async down(queryInterface, Sequelize) {
 		await queryInterface.removeIndex("device_claim", ["device_id"]);
 		await queryInterface.removeIndex("device_claim", ["status"]);
-		await queryInterface.removeIndex("device_claim", ["type"]);
 		await queryInterface.removeIndex("device_claim", ["expires_at"]);
 		await queryInterface.dropTable("device_claim");
-		await queryInterface.sequelize.query(
-			"DROP TYPE IF EXISTS enum_device_claim_type;"
-		);
 		await queryInterface.sequelize.query(
 			"DROP TYPE IF EXISTS enum_device_claim_status;"
 		);

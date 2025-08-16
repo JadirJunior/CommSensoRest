@@ -7,10 +7,9 @@ class Device extends Model {
 	declare name: string;
 	declare macAddress: string;
 	declare mqttClientId: string;
-	declare status: "provisioned" | "registered" | "active" | "blocked";
-	declare isActive: boolean;
-	declare registeredAt: Date | null;
-	declare lastSeenAt: Date | null;
+	declare status: "provisioned" | "active" | "blocked";
+	declare activatedAt: Date | null;
+	declare blockedAt: Date | null;
 	declare ownerUserId: string | null;
 }
 
@@ -35,25 +34,19 @@ Device.init(
 			unique: true,
 		},
 		status: {
-			type: DataTypes.ENUM("provisioned", "registered", "active", "blocked"),
+			type: DataTypes.ENUM("provisioned", "active", "blocked"),
 			allowNull: false,
 			defaultValue: "provisioned",
 		},
-		isActive: {
-			type: DataTypes.BOOLEAN,
+		activatedAt: {
+			type: DataTypes.DATE,
+			allowNull: true,
+			field: "activated_at",
+		},
+		blockedAt: {
+			type: DataTypes.DATE,
 			allowNull: false,
-			defaultValue: true,
-			field: "is_active",
-		},
-		registeredAt: {
-			type: DataTypes.DATE,
-			allowNull: true,
-			field: "registered_at",
-		},
-		lastSeenAt: {
-			type: DataTypes.DATE,
-			allowNull: true,
-			field: "last_seen_at",
+			field: "blocked_at",
 		},
 		ownerUserId: {
 			type: DataTypes.UUID,
@@ -86,5 +79,6 @@ Device.init(
 );
 
 Device.belongsTo(User, { foreignKey: "ownerUserId", as: "owner" });
+User.hasMany(Device, { foreignKey: "ownerUserId", as: "devices" });
 
 export default Device;
