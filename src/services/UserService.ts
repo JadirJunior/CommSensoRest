@@ -17,7 +17,7 @@ class UserService extends BaseService<User> {
 		username: string,
 		password: string
 	): Promise<CommSensoResponse<LoginResponse>> {
-		const user = await this.model.findOne({
+		const user = await this.model.scope("withPassword").findOne({
 			where: {
 				username,
 			},
@@ -56,7 +56,7 @@ class UserService extends BaseService<User> {
 	public async createUser(
 		username: string,
 		password: string
-	): Promise<CommSensoResponse<User>> {
+	): Promise<CommSensoResponse<Omit<User, "password">>> {
 		const user = await this.model.findOne({
 			where: {
 				username,
@@ -79,10 +79,12 @@ class UserService extends BaseService<User> {
 			password: hash,
 		});
 
+		const { password: _pw, ...safe } = newUser.get({ plain: true });
+
 		return {
 			status: 201,
 			message: "User created",
-			data: newUser,
+			data: safe, // sem password
 		};
 	}
 }

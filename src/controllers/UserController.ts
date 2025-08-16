@@ -25,9 +25,7 @@ class UserServiceController extends BaseController<User> {
 				return;
 			}
 
-			const token = createToken(data);
-
-			res.status(status ?? 200).json({ message, data: { token } });
+			res.status(status ?? 200).json({ message, data });
 		} catch (error) {
 			next(error);
 		}

@@ -12,18 +12,17 @@ module.exports = {
 			deviceId: {
 				type: Sequelize.UUID,
 				allowNull: true,
+				field: "device_id",
 				references: {
 					model: "device",
 					key: "id",
 				},
 				onUpdate: "CASCADE",
-				onDelete: "CASCADE",
-				field: "device_id",
+				onDelete: "SET NULL",
 			},
 			codeHash: {
 				type: Sequelize.STRING(255),
 				allowNull: false,
-				unique: true,
 				field: "code_hash",
 			},
 			status: {
@@ -39,13 +38,13 @@ module.exports = {
 			issuedByUserId: {
 				type: Sequelize.UUID,
 				allowNull: true,
+				field: "issued_by_user_id",
 				references: {
 					model: "user",
 					key: "id",
 				},
 				onUpdate: "CASCADE",
 				onDelete: "SET NULL",
-				field: "issued_by_user_id",
 			},
 			createdAt: {
 				type: Sequelize.DATE,
@@ -59,19 +58,38 @@ module.exports = {
 			},
 		});
 
-		// Índices
-		await queryInterface.addIndex("device_claim", ["device_id"]);
-		await queryInterface.addIndex("device_claim", ["status"]);
-		await queryInterface.addIndex("device_claim", ["expires_at"]);
+		// Índices conforme o model
+		await queryInterface.addIndex("device_claim", {
+			fields: ["device_id"],
+			name: "ix_device_claim_device_id",
+		});
+
+		await queryInterface.addIndex("device_claim", {
+			fields: ["status"],
+			name: "ix_device_claim_status",
+		});
+
+		await queryInterface.addIndex("device_claim", {
+			fields: ["expires_at"],
+			name: "ix_device_claim_expires_at",
+		});
 	},
 
 	async down(queryInterface, Sequelize) {
-		await queryInterface.removeIndex("device_claim", ["device_id"]);
-		await queryInterface.removeIndex("device_claim", ["status"]);
-		await queryInterface.removeIndex("device_claim", ["expires_at"]);
+		await queryInterface.removeIndex(
+			"device_claim",
+			"ix_device_claim_device_id"
+		);
+		await queryInterface.removeIndex("device_claim", "ix_device_claim_status");
+		await queryInterface.removeIndex(
+			"device_claim",
+			"ix_device_claim_expires_at"
+		);
+
 		await queryInterface.dropTable("device_claim");
+
 		await queryInterface.sequelize.query(
-			"DROP TYPE IF EXISTS enum_device_claim_status;"
+			'DROP TYPE IF EXISTS "enum_device_claim_status";'
 		);
 	},
 };

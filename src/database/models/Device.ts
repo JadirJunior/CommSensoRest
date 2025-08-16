@@ -45,7 +45,7 @@ Device.init(
 		},
 		blockedAt: {
 			type: DataTypes.DATE,
-			allowNull: false,
+			allowNull: true,
 			field: "blocked_at",
 		},
 		ownerUserId: {
@@ -63,6 +63,11 @@ Device.init(
 			{ unique: true, fields: ["mac_address"] },
 			{ unique: true, fields: ["mqtt_client_id"] },
 			{ fields: ["status"] },
+			{
+				unique: true,
+				fields: ["owner_user_id", "name"],
+				name: "ux_device_owner_name",
+			},
 		],
 		hooks: {
 			beforeValidate(instance) {

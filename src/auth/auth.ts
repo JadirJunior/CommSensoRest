@@ -33,8 +33,10 @@ export const verifyToken = (token: string): Omit<User, "password"> | null => {
 		const decoded = jwt.verify(token, process.env.JWT_SECRET) as {
 			user: Omit<User, "password">;
 		};
+		// console.log("User Authenticated:", decoded.user);
 		return decoded.user;
 	} catch (error) {
+		console.log(error);
 		return null; // Retorna null se o token for inválido ou expirado
 	}
 };

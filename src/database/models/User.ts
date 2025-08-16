@@ -35,6 +35,13 @@ User.init(
 		sequelize: db,
 		tableName: "user",
 		timestamps: false,
+		defaultScope: {
+			attributes: { exclude: ["password"] },
+		},
+
+		scopes: {
+			withPassword: { attributes: { include: ["password"] } },
+		},
 	}
 );
 

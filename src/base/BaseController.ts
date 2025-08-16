@@ -55,6 +55,7 @@ export abstract class BaseController<M extends Model> implements IController {
 			const { data, message, status } = await this.service.add(req.body);
 			return res.status(status ?? 200).json({ data, message });
 		} catch (error) {
+			console.log("Error: ", error);
 			next(error);
 		}
 	}

@@ -1,8 +1,11 @@
 import { Attributes, CreationAttributes, Model, WhereOptions } from "sequelize";
 import { CommSensoResponse } from "../utils/CommSensoResponse";
 
-export interface IService<M extends Model> {
-	add(model: CreationAttributes<M>): Promise<CommSensoResponse<M>>;
+export interface IService<
+	M extends Model,
+	CreateInput = CreationAttributes<M>
+> {
+	add(model: CreateInput): Promise<CommSensoResponse<M>>;
 
 	deleteById(
 		id: WhereOptions<Attributes<M>>

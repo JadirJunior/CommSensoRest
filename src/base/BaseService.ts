@@ -8,17 +8,21 @@ import {
 import { IService } from "../interfaces/IService";
 import { CommSensoResponse } from "../utils/CommSensoResponse";
 
-export abstract class BaseService<M extends Model> implements IService<M> {
+export abstract class BaseService<
+	M extends Model,
+	CreateInput = CreationAttributes<M>
+> implements IService<M, CreateInput>
+{
 	protected readonly model: ModelStatic<M>;
 
 	protected constructor(model: ModelStatic<M>) {
 		this.model = model;
 	}
 
-	public async add(
-		attributes: CreationAttributes<M>
-	): Promise<CommSensoResponse<M>> {
-		const result = await this.model.create({ ...attributes });
+	public async add(attributes: CreateInput): Promise<CommSensoResponse<M>> {
+		const result = await this.model.create({
+			...(attributes as CreationAttributes<M>),
+		});
 
 		return new CommSensoResponse<M>({
 			data: result,

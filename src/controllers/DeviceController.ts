@@ -21,6 +21,19 @@ class DeviceController extends BaseController<Device> {
 			next(error);
 		}
 	}
+
+	async getAll(req: Request, res: Response, next: NextFunction) {
+		try {
+			const ctx = { id: req.user!.id, role: req.user!.role };
+
+			const { status, message, data } = await this.service.listForRequester(
+				ctx
+			);
+			return res.status(status ?? 200).json({ message, data });
+		} catch (error) {
+			next(error);
+		}
+	}
 }
 
 export default DeviceController;
