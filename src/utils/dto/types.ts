@@ -14,3 +14,12 @@ export type GetMeasureResponse = {
 		valid: boolean;
 	};
 };
+
+export type LoginResponse = {
+	user: {
+		id: string;
+		username: string;
+	};
+	accessToken: string;
+	refreshToken: string;
+};

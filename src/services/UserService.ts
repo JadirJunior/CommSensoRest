@@ -4,6 +4,8 @@ import User from "../database/models/User";
 import { CommSensoResponse } from "../utils/CommSensoResponse";
 import { compareHash, generateHash } from "../utils/cripto";
 import { v4 } from "uuid";
+import { createToken } from "../auth/auth";
+import { LoginResponse } from "../utils/dto/types";
 class UserService extends BaseService<User> {
 	protected model: ModelStatic<User> = User;
 
@@ -14,7 +16,7 @@ class UserService extends BaseService<User> {
 	public async login(
 		username: string,
 		password: string
-	): Promise<CommSensoResponse<User>> {
+	): Promise<CommSensoResponse<LoginResponse>> {
 		const user = await this.model.findOne({
 			where: {
 				username,
@@ -29,10 +31,18 @@ class UserService extends BaseService<User> {
 		}
 
 		if (compareHash(password, user.password)) {
+			const { accessToken, refreshToken } = createToken(user);
 			return {
 				status: 200,
 				message: "User found",
-				data: user,
+				data: {
+					user: {
+						id: user.id,
+						username: user.username,
+					},
+					accessToken,
+					refreshToken,
+				},
 			};
 		}
 
