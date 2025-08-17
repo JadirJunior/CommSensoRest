@@ -6,12 +6,18 @@ import {
 	authenticateAdmin,
 	authenticateUser,
 } from "../middlewares/authenticate";
+import DeviceClaim from "../database/models/DeviceClaim";
 
-const control = new DeviceController(new DeviceService());
+const control = new DeviceController(new DeviceService(DeviceClaim));
 
 const deviceRouter = Router();
 
 deviceRouter.get("/device", authenticateUser, control.getAll.bind(control));
 deviceRouter.post("/device", authenticateAdmin, control.create.bind(control));
+deviceRouter.post(
+	"/device/redeem",
+	authenticateUser,
+	control.redeemDevice.bind(control)
+);
 
 export default deviceRouter;

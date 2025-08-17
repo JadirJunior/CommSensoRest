@@ -1,8 +1,12 @@
-import { FindOptions, ModelStatic } from "sequelize";
+import { FindOptions, ModelStatic, Sequelize, where } from "sequelize";
 import { BaseService } from "../base/BaseService";
 import { CommSensoResponse } from "../utils/CommSensoResponse";
 import Device from "../database/models/Device";
 import User from "../database/models/User";
+import DeviceClaim from "../database/models/DeviceClaim";
+import { compareHash } from "../utils/cripto";
+import dayjs from "dayjs";
+import sequelizeConnection from "../config/databaseConfig";
 
 type CreateInputDTO = {
 	name: string;
@@ -15,7 +19,7 @@ type RequesterCtx = { id: string; role: "admin" | "user" };
 class DeviceService extends BaseService<Device, CreateInputDTO> {
 	protected model: ModelStatic<Device> = Device;
 
-	constructor(private userModel: ModelStatic<User> = User) {
+	constructor(private deviceClaim: ModelStatic<DeviceClaim>) {
 		super(Device);
 	}
 
@@ -82,6 +86,81 @@ class DeviceService extends BaseService<Device, CreateInputDTO> {
 		}
 
 		return super.add({ macAddress, name, ownerUserId });
+	}
+
+	public async redeemDevice({
+		deviceId,
+		code,
+		ctx,
+	}: {
+		deviceId: string;
+		code: string;
+		ctx: RequesterCtx;
+	}) {
+		return sequelizeConnection.transaction(async (transaction) => {
+			const claim = await this.deviceClaim.findOne({
+				where: { deviceId },
+				transaction,
+				lock: transaction.LOCK.UPDATE,
+			});
+
+			if (!claim || claim.status !== "issued")
+				return new CommSensoResponse<Device>({
+					status: 404,
+					message: "Código de resgate inválido ou expirado.",
+				});
+
+			if (claim.expiresAt && dayjs(claim.expiresAt).isBefore(dayjs()))
+				return new CommSensoResponse<Device>({
+					status: 404,
+					message: "Código de resgate inválido ou expirado.",
+				});
+
+			if (!compareHash(code, claim.codeHash))
+				return new CommSensoResponse<Device>({
+					status: 404,
+					message: "Código de resgate inválido ou expirado.",
+				});
+
+			const device = await this.model.findByPk(deviceId, {
+				transaction,
+				lock: transaction.LOCK.UPDATE,
+			});
+
+			if (!device)
+				return new CommSensoResponse<Device>({
+					status: 404,
+					message: "Dispositivo não encontrado.",
+				});
+
+			if (device.ownerUserId && device.ownerUserId !== ctx.id)
+				return new CommSensoResponse<Device>({
+					status: 409,
+					message: "Dispositivo já possui proprietário.",
+				});
+
+			await claim.update({ status: "redeemed" }, { transaction });
+
+			await device.update(
+				{
+					status: "active",
+					ownerUserId: ctx.id,
+					activatedAt: dayjs().toDate(),
+				},
+				{ transaction }
+			);
+
+			await device.reload({
+				transaction,
+			});
+
+			// devolve objeto plano
+			return new CommSensoResponse<ReturnType<typeof device.toJSON>>({
+				data: device.toJSON(),
+				status: 200,
+				message: "Dispositivo resgatado com sucesso.",
+			});
+		});
 	}
 }
 

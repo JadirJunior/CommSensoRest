@@ -34,6 +34,22 @@ class DeviceController extends BaseController<Device> {
 			next(error);
 		}
 	}
+
+	async redeemDevice(req: Request, res: Response, next: NextFunction) {
+		try {
+			const { deviceId, code } = req.body;
+			const ctx = { id: req.user!.id, role: req.user!.role };
+
+			const { status, message, data } = await this.service.redeemDevice({
+				deviceId,
+				code,
+				ctx,
+			});
+			return res.status(status ?? 200).json({ message, data });
+		} catch (error) {
+			next(error);
+		}
+	}
 }
 
 export default DeviceController;

@@ -13,7 +13,6 @@ class DeviceClaim extends Model {
 	declare createdAt: Date;
 	declare updatedAt: Date;
 }
-
 DeviceClaim.init(
 	{
 		id: {
@@ -38,8 +37,7 @@ DeviceClaim.init(
 			allowNull: true,
 			field: "issued_by_user_id",
 		},
-		createdAt: { type: DataTypes.DATE, allowNull: false, field: "created_at" },
-		updatedAt: { type: DataTypes.DATE, allowNull: false, field: "updated_at" },
+		// REMOVIDOS: createdAt/updatedAt dos atributos
 	},
 	{
 		sequelize: db,
