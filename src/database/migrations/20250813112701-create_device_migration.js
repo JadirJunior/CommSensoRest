@@ -25,6 +25,12 @@ module.exports = {
 					unique: true,
 					field: "mqtt_client_id",
 				},
+				mqttSecretHash: {
+					type: Sequelize.STRING,
+					allowNull: false,
+					unique: true,
+					field: "mqtt_secret_hash",
+				},
 				status: {
 					type: Sequelize.ENUM("provisioned", "active", "blocked"),
 					allowNull: false,

@@ -1,10 +1,11 @@
 import { FindOptions, ModelStatic, Sequelize, where } from "sequelize";
 import { BaseService } from "../base/BaseService";
+import crypto from "crypto";
 import { CommSensoResponse } from "../utils/CommSensoResponse";
 import Device from "../database/models/Device";
 import User from "../database/models/User";
 import DeviceClaim from "../database/models/DeviceClaim";
-import { compareHash } from "../utils/cripto";
+import { compareHash, generateHash } from "../utils/cripto";
 import dayjs from "dayjs";
 import sequelizeConnection from "../config/databaseConfig";
 
@@ -15,6 +16,15 @@ type CreateInputDTO = {
 };
 
 type RequesterCtx = { id: string; role: "admin" | "user" };
+
+function genSecretB64Url(bytes = 32) {
+	return crypto
+		.randomBytes(bytes)
+		.toString("base64")
+		.replace(/\+/g, "-")
+		.replace(/\//g, "_")
+		.replace(/=+$/, "");
+}
 
 class DeviceService extends BaseService<Device, CreateInputDTO> {
 	protected model: ModelStatic<Device> = Device;
@@ -92,10 +102,12 @@ class DeviceService extends BaseService<Device, CreateInputDTO> {
 		deviceId,
 		code,
 		ctx,
+		forceRotate = false,
 	}: {
 		deviceId: string;
 		code: string;
 		ctx: RequesterCtx;
+		forceRotate?: boolean;
 	}) {
 		return sequelizeConnection.transaction(async (transaction) => {
 			const claim = await this.deviceClaim.findOne({
@@ -139,6 +151,21 @@ class DeviceService extends BaseService<Device, CreateInputDTO> {
 					message: "Dispositivo já possui proprietário.",
 				});
 
+			let mqttSecretPlain: string | null = null;
+			if (forceRotate || !device.mqttSecretHash) {
+				mqttSecretPlain = genSecretB64Url(32);
+				const hash = generateHash(mqttSecretPlain);
+
+				if (!device.mqttClientId) {
+					const macnorm = (device.macAddress || "")
+						.replace(/:/g, "")
+						.toLowerCase();
+					device.mqttClientId = `dev-${macnorm}`;
+				}
+
+				await device.update({ mqttSecretHash: hash }, { transaction });
+			}
+
 			await claim.update({ status: "redeemed" }, { transaction });
 
 			await device.update(
@@ -154,9 +181,16 @@ class DeviceService extends BaseService<Device, CreateInputDTO> {
 				transaction,
 			});
 
-			// devolve objeto plano
+			const credentials = mqttSecretPlain
+				? {
+						clientId: device.mqttClientId,
+						username: device.mqttClientId,
+						password: mqttSecretPlain,
+				  }
+				: undefined;
+
 			return new CommSensoResponse<ReturnType<typeof device.toJSON>>({
-				data: device.toJSON(),
+				data: { ...device.toJSON(), mqtt: credentials },
 				status: 200,
 				message: "Dispositivo resgatado com sucesso.",
 			});

@@ -9,6 +9,7 @@ class Device extends Model {
 	declare name: string;
 	declare macAddress: string;
 	declare mqttClientId: string;
+	declare mqttSecretHash: string | null;
 	declare status: "provisioned" | "active" | "blocked";
 	declare activatedAt: Date | null;
 	declare blockedAt: Date | null;
@@ -36,6 +37,11 @@ Device.init(
 			allowNull: false,
 			field: "mqtt_client_id",
 			unique: true, // idem observação abaixo
+		},
+		mqttSecretHash: {
+			type: DataTypes.STRING,
+			allowNull: true,
+			field: "mqtt_secret_hash",
 		},
 		tenantId: {
 			type: DataTypes.UUID,
@@ -84,10 +90,6 @@ Device.init(
 				fields: ["owner_user_id", "name"],
 				name: "ux_device_owner_name",
 			},
-			// Se quiser que mac/mqtt sejam únicos POR TENANT (em vez de globalmente),
-			// remova os dois índices únicos globais acima e use estes dois compostos:
-			// { unique: true, fields: ["tenant_id", "mac_address"], name: "ux_device_tenant_mac" },
-			// { unique: true, fields: ["tenant_id", "mqtt_client_id"], name: "ux_device_tenant_mqtt" },
 		],
 		hooks: {
 			beforeValidate(instance) {
@@ -99,6 +101,13 @@ Device.init(
 					}
 				}
 			},
+		},
+		defaultScope: {
+			attributes: { exclude: ["mqttSecretHash"] },
+		},
+
+		scopes: {
+			withSecret: { attributes: { include: ["mqttSecretHash"] } },
 		},
 	}
 );
