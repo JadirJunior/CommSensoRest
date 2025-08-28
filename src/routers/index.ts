@@ -5,6 +5,7 @@ import MeasureRouter from "./MeasureRouter";
 import userRouter from "./UserRouter";
 import deviceRouter from "./DeviceRouter";
 import deviceClaimRouter from "./DeviceClaimRouter";
+import internalRouter from "./InternalMqttRouter";
 
 const router = Router();
 
@@ -14,5 +15,6 @@ router.use(MeasureRouter);
 router.use(userRouter);
 router.use(deviceRouter);
 router.use(deviceClaimRouter);
+router.use(internalRouter);
 
 export default router;
