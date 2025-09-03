@@ -6,7 +6,7 @@ import { requireFields } from "../middlewares/requireFields";
 const internalRouter = Router();
 
 internalRouter.post(
-	"/mqtt/auth",
+	"internal/mqtt/auth",
 	verifyBrokerToken,
 	requireFields(["client_id", "username", "password"]),
 	InternalMqttController.auth

@@ -8,6 +8,7 @@ import DeviceClaim from "../database/models/DeviceClaim";
 import { compareHash, generateHash } from "../utils/cripto";
 import dayjs from "dayjs";
 import sequelizeConnection from "../config/databaseConfig";
+import { publishBootstrapEncrypted } from "../utils/publishBootstrap";
 
 type CreateInputDTO = {
 	name: string;
@@ -109,7 +110,19 @@ class DeviceService extends BaseService<Device, CreateInputDTO> {
 		ctx: RequesterCtx;
 		forceRotate?: boolean;
 	}) {
-		return sequelizeConnection.transaction(async (transaction) => {
+		// Dados para publish depois do commit
+		let toPublish:
+			| {
+					deviceId: string;
+					code: string;
+					mqttCreds: { username: string; password: string };
+					extra: Record<string, unknown>;
+			  }
+			| undefined;
+
+		let response!: CommSensoResponse<ReturnType<Device["toJSON"]>>;
+
+		await sequelizeConnection.transaction(async (transaction) => {
 			const claim = await this.deviceClaim.findOne({
 				where: { deviceId },
 				transaction,
@@ -117,22 +130,22 @@ class DeviceService extends BaseService<Device, CreateInputDTO> {
 			});
 
 			if (!claim || claim.status !== "issued")
-				return new CommSensoResponse<Device>({
+				return (response = new CommSensoResponse<Device>({
 					status: 404,
 					message: "Código de resgate inválido ou expirado.",
-				});
+				}));
 
 			if (claim.expiresAt && dayjs(claim.expiresAt).isBefore(dayjs()))
-				return new CommSensoResponse<Device>({
+				return (response = new CommSensoResponse<Device>({
 					status: 404,
 					message: "Código de resgate inválido ou expirado.",
-				});
+				}));
 
 			if (!compareHash(code, claim.codeHash))
-				return new CommSensoResponse<Device>({
+				return (response = new CommSensoResponse<Device>({
 					status: 404,
 					message: "Código de resgate inválido ou expirado.",
-				});
+				}));
 
 			const device = await this.model.findByPk(deviceId, {
 				transaction,
@@ -140,19 +153,21 @@ class DeviceService extends BaseService<Device, CreateInputDTO> {
 			});
 
 			if (!device)
-				return new CommSensoResponse<Device>({
+				return (response = new CommSensoResponse<Device>({
 					status: 404,
 					message: "Dispositivo não encontrado.",
-				});
+				}));
 
 			if (device.ownerUserId && device.ownerUserId !== ctx.id)
-				return new CommSensoResponse<Device>({
+				return (response = new CommSensoResponse<Device>({
 					status: 409,
 					message: "Dispositivo já possui proprietário.",
-				});
+				}));
 
 			let mqttSecretPlain: string | null = null;
-			if (forceRotate || !device.mqttSecretHash) {
+			const mustRotate = forceRotate || !device.mqttSecretHash;
+
+			if (mustRotate) {
 				mqttSecretPlain = genSecretB64Url(32);
 				const hash = generateHash(mqttSecretPlain);
 
@@ -166,7 +181,12 @@ class DeviceService extends BaseService<Device, CreateInputDTO> {
 				await device.update({ mqttSecretHash: hash }, { transaction });
 			}
 
-			await claim.update({ status: "redeemed" }, { transaction });
+			await claim.update(
+				{ status: "redeemed", redeemedAt: dayjs().toDate() } as any,
+				{
+					transaction,
+				}
+			);
 
 			await device.update(
 				{
@@ -177,9 +197,7 @@ class DeviceService extends BaseService<Device, CreateInputDTO> {
 				{ transaction }
 			);
 
-			await device.reload({
-				transaction,
-			});
+			await device.reload({ transaction });
 
 			const credentials = mqttSecretPlain
 				? {
@@ -189,12 +207,53 @@ class DeviceService extends BaseService<Device, CreateInputDTO> {
 				  }
 				: undefined;
 
-			return new CommSensoResponse<ReturnType<typeof device.toJSON>>({
+			// prepara a resposta final
+			response = new CommSensoResponse<ReturnType<typeof device.toJSON>>({
 				data: { ...device.toJSON(), mqtt: credentials },
 				status: 200,
 				message: "Dispositivo resgatado com sucesso.",
 			});
+
+			// prepara o publish do bootstrap
+			if (credentials) {
+				toPublish = {
+					deviceId: device.id,
+					code,
+					mqttCreds: {
+						username: credentials.username,
+						password: credentials.password,
+					},
+					extra: {
+						tenantId: device.tenantId,
+						appId: device.appId,
+						deviceClientId: device.mqttClientId,
+					},
+				};
+			}
 		});
+
+		if (toPublish) {
+			try {
+				await publishBootstrapEncrypted({
+					brokerUrl: process.env.BROKER_URL!,
+					brokerUser: process.env.BROKER_SVC_USER!,
+					brokerPass: process.env.BROKER_SVC_PASS!,
+					deviceId: toPublish.deviceId,
+					code: toPublish.code,
+					mqttCreds: toPublish.mqttCreds,
+					extra: toPublish.extra,
+				});
+			} catch (e) {
+				console.error("publishBootstrapEncrypted failed:", e);
+				response = new CommSensoResponse({
+					...response,
+					message:
+						"Dispositivo resgatado, mas houve erro ao publicar o bootstrap. Tente novamente.",
+				}) as any;
+			}
+		}
+
+		return response;
 	}
 }
 

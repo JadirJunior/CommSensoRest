@@ -48,7 +48,9 @@ export class InternalMqttController {
 		return res.json(
 			new CommSensoResponse({
 				status: ok ? 200 : 401,
-				...(ok && { data: { deviceId: dev.id } }),
+				...(ok && {
+					data: { deviceId: dev.id, tentantId: dev.tenantId, appId: dev.appId },
+				}),
 			})
 		);
 	}
