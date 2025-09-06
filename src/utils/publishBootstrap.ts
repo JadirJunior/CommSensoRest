@@ -23,6 +23,8 @@ export async function publishBootstrapEncrypted(params: {
 
 	const topic = `bootstrap/${deviceId}`;
 
+	console.log("Publishing encrypted bootstrap to topic", topic);
+
 	const clear = {
 		ok: true,
 		flow: "onboarding",

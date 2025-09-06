@@ -1,6 +1,8 @@
 import { ModelStatic } from "sequelize";
 import { BaseService } from "../base/BaseService";
 import Tenant from "../database/models/Tenant";
+import App from "../database/models/App";
+import { CommSensoResponse } from "../utils/CommSensoResponse";
 
 type CreateTenantDTO = {
 	slug: string;

@@ -41,7 +41,6 @@ export async function authenticateUser(
 		// Anexa o contexto autenticado ao Request
 		req.user = {
 			id: user.id,
-			username: user.username,
 			role: user.role as Role,
 		};
 

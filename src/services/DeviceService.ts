@@ -13,6 +13,8 @@ import { publishBootstrapEncrypted } from "../utils/publishBootstrap";
 type CreateInputDTO = {
 	name: string;
 	macAddress: string;
+	appId?: string;
+	tenantId?: string;
 	ownerUserId?: string;
 };
 
@@ -72,7 +74,13 @@ class DeviceService extends BaseService<Device, CreateInputDTO> {
 		});
 	}
 
-	public async add({ macAddress, name, ownerUserId }: CreateInputDTO) {
+	public async add({
+		macAddress,
+		name,
+		ownerUserId,
+		appId,
+		tenantId,
+	}: CreateInputDTO) {
 		const existsMac = await this.model.findOne({
 			where: { macAddress: macAddress.replace(/:/g, "").toLowerCase() },
 		});
@@ -96,7 +104,7 @@ class DeviceService extends BaseService<Device, CreateInputDTO> {
 				});
 		}
 
-		return super.add({ macAddress, name, ownerUserId });
+		return super.add({ macAddress, name, ownerUserId, tenantId, appId });
 	}
 
 	public async redeemDevice({
@@ -163,6 +171,14 @@ class DeviceService extends BaseService<Device, CreateInputDTO> {
 					status: 409,
 					message: "Dispositivo já possui proprietário.",
 				}));
+
+			if (!device.appId || !device.tenantId) {
+				return (response = new CommSensoResponse<Device>({
+					status: 400,
+					message:
+						"Dispositivo não está associado a um aplicativo ou organização. Contate o suporte.",
+				}));
+			}
 
 			let mqttSecretPlain: string | null = null;
 			const mustRotate = forceRotate || !device.mqttSecretHash;

@@ -7,7 +7,7 @@ const control = new AppController(new AppService());
 
 const appRouter = Router();
 
-appRouter.get("/app", control.getAll.bind(control));
+appRouter.get("/app", authenticateAdmin, control.getAll.bind(control));
 appRouter.post("/app", authenticateAdmin, control.create.bind(control));
 appRouter.delete(
 	"/app/:id",

@@ -79,16 +79,6 @@ class UserService extends BaseService<User> {
 			password: hash,
 		});
 
-		const user = {
-			id: newUser.id,
-			username: newUser.username,
-		};
-
-		const user2 = {
-			avatar: "https://link.com",
-			{...user},
-		}
-
 		const { password: _pw, ...safe } = newUser.get({ plain: true });
 
 		return {

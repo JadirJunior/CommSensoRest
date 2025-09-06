@@ -27,7 +27,7 @@ module.exports = {
 				},
 				mqttSecretHash: {
 					type: Sequelize.STRING,
-					allowNull: false,
+					allowNull: true,
 					unique: true,
 					field: "mqtt_secret_hash",
 				},
