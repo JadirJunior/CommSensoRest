@@ -9,6 +9,8 @@ import { compareHash, generateHash } from "../utils/cripto";
 import dayjs from "dayjs";
 import sequelizeConnection from "../config/databaseConfig";
 import { publishBootstrapEncrypted } from "../utils/publishBootstrap";
+import Tenant from "../database/models/Tenant";
+import App from "../database/models/App";
 
 type CreateInputDTO = {
 	name: string;
@@ -65,6 +67,10 @@ class DeviceService extends BaseService<Device, CreateInputDTO> {
 
 		const devices = await this.model.findAll({
 			...options,
+			include: [
+				{ model: Tenant, as: "tenant", attributes: [["name", "tenantName"]] },
+				{ model: App, as: "app", attributes: [["name", "appName"]] },
+			],
 		});
 
 		return new CommSensoResponse<Device[]>({
