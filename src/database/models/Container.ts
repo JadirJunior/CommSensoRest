@@ -4,9 +4,9 @@ import db from ".";
 class Container extends Model {
 	declare id: number;
 	declare name: string;
-	declare quality: string;
 	declare valid: boolean;
 	declare weight: number;
+	declare appId?: string | null;
 }
 
 Container.init(
@@ -29,6 +29,11 @@ Container.init(
 		weight: {
 			type: DataTypes.FLOAT,
 			allowNull: false,
+		},
+		appId: {
+			type: DataTypes.UUID,
+			allowNull: true,
+			field: "app_id",
 		},
 	},
 	{

@@ -4,6 +4,7 @@ import { compareHash } from "../utils/cripto";
 import { CommSensoResponse } from "../utils/CommSensoResponse";
 import { verifyToken } from "../auth/auth";
 import User from "../database/models/User";
+import App from "../database/models/App";
 
 const topicMatches = (pattern: string, topic: string) => {
 	// suporta '+' e '#'
@@ -157,8 +158,8 @@ export class InternalMqttController {
 
 			// 2) encontre o device e cheque ownership
 			const dev = await Device.findByPk(parsed.deviceId, {
-				attributes: ["id", "tenantId", "appId", "ownerUserId", "status"],
-				raw: true,
+				attributes: ["id", "tenantId", "appId", "status"],
+				include: [{ model: App, attributes: ["userId"], as: "app" }],
 			});
 
 			console.log("Dados da requisição de autorização:", {
@@ -171,7 +172,7 @@ export class InternalMqttController {
 
 			if (!dev || dev.status !== "active")
 				return res.json({ allow: false, reason: "unknown or inactive device" });
-			if (dev.ownerUserId !== decoded.id)
+			if (dev.app.userId !== decoded.id)
 				return res.json({ allow: false, reason: "not owner" });
 
 			// 3) cheque rota/tail e ação

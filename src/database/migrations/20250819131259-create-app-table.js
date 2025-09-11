@@ -17,6 +17,15 @@ module.exports = {
 				onUpdate: "CASCADE",
 				onDelete: "CASCADE",
 			},
+
+			// Temporário
+			user_id: {
+				type: Sequelize.DataTypes.UUID,
+				allowNull: true,
+				references: { model: "user", key: "id" },
+				onUpdate: "CASCADE",
+				onDelete: "CASCADE",
+			},
 			slug: {
 				type: Sequelize.DataTypes.STRING(120),
 				allowNull: false,

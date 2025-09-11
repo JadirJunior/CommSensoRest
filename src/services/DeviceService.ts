@@ -11,13 +11,13 @@ import sequelizeConnection from "../config/databaseConfig";
 import { publishBootstrapEncrypted } from "../utils/publishBootstrap";
 import Tenant from "../database/models/Tenant";
 import App from "../database/models/App";
+import app from "../app";
 
 type CreateInputDTO = {
 	name: string;
 	macAddress: string;
-	appId?: string;
-	tenantId?: string;
-	ownerUserId?: string;
+	appId: string;
+	tenantId: string;
 };
 
 type RequesterCtx = { id: string; role: "admin" | "user" };
@@ -61,15 +61,21 @@ class DeviceService extends BaseService<Device, CreateInputDTO> {
 			});
 		}
 
-		const options: FindOptions = {
-			where: ctx.role === "admin" ? {} : { ownerUserId: ctx.id },
-		};
+		// const options: FindOptions = {
+		// 	where: ctx.role === "admin" ? {} : { ownerUserId: ctx.id },
+		// };
 
 		const devices = await this.model.findAll({
-			...options,
 			include: [
 				{ model: Tenant, as: "tenant", attributes: [["name", "tenantName"]] },
-				{ model: App, as: "app", attributes: [["name", "appName"]] },
+				{
+					model: App,
+					as: "app",
+					attributes: [["name", "appName"], "slug"],
+					where: {
+						userId: ctx.id,
+					},
+				},
 			],
 		});
 
@@ -80,13 +86,14 @@ class DeviceService extends BaseService<Device, CreateInputDTO> {
 		});
 	}
 
-	public async add({
-		macAddress,
-		name,
-		ownerUserId,
-		appId,
-		tenantId,
-	}: CreateInputDTO) {
+	public async add({ macAddress, name, appId }: CreateInputDTO) {
+		if (!appId) {
+			return new CommSensoResponse<Device>({
+				status: 400,
+				message: "AppId é obrigatório.",
+			});
+		}
+
 		const existsMac = await this.model.findOne({
 			where: { macAddress: macAddress.replace(/:/g, "").toLowerCase() },
 		});
@@ -98,19 +105,24 @@ class DeviceService extends BaseService<Device, CreateInputDTO> {
 				message: "Este endereço MAC já está em uso.",
 			});
 
-		if (ownerUserId) {
-			const existsName = await this.model.findOne({
-				where: { ownerUserId: ownerUserId, name: name },
+		const appExists = await App.findByPk(appId);
+		if (!appExists)
+			return new CommSensoResponse<Device>({
+				status: 404,
+				message: "App não encontrado.",
 			});
-			if (existsName)
-				return new CommSensoResponse<Device>({
-					data: existsName,
-					status: 409,
-					message: "Você já possui um device com esse nome.",
-				});
-		}
 
-		return super.add({ macAddress, name, ownerUserId, tenantId, appId });
+		const existsName = await this.model.findOne({
+			where: { appId: appId, name: name },
+		});
+		if (existsName)
+			return new CommSensoResponse<Device>({
+				data: existsName,
+				status: 409,
+				message: "Essa aplicação já possui um dispositivo com o mesmo nome.",
+			});
+
+		return super.add({ macAddress, name, tenantId: appExists.tenantId, appId });
 	}
 
 	public async redeemDevice({

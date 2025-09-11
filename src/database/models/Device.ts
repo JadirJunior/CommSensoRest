@@ -16,6 +16,7 @@ class Device extends Model {
 	declare ownerUserId: string | null;
 	declare tenantId: string | null;
 	declare appId: string | null;
+	declare app: Partial<App>;
 }
 
 Device.init(
@@ -68,11 +69,11 @@ Device.init(
 			allowNull: true,
 			field: "blocked_at",
 		},
-		ownerUserId: {
-			type: DataTypes.UUID,
-			allowNull: true,
-			field: "owner_user_id",
-		},
+		// ownerUserId: {
+		// 	type: DataTypes.UUID,
+		// 	allowNull: true,
+		// 	field: "owner_user_id",
+		// },
 	},
 	{
 		sequelize: db,
@@ -113,8 +114,8 @@ Device.init(
 );
 
 // Associações (composite FK é aplicada na migration; aqui ficam associações simples)
-Device.belongsTo(User, { foreignKey: "ownerUserId", as: "owner" });
-User.hasMany(Device, { foreignKey: "ownerUserId", as: "devices" });
+// Device.belongsTo(User, { foreignKey: "ownerUserId", as: "owner" });
+// User.hasMany(Device, { foreignKey: "ownerUserId", as: "devices" });
 
 Device.belongsTo(Tenant, { foreignKey: "tenantId", as: "tenant" });
 Tenant.hasMany(Device, { foreignKey: "tenantId", as: "devices" });

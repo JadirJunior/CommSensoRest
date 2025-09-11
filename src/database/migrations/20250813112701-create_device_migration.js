@@ -46,14 +46,14 @@ module.exports = {
 					allowNull: true,
 					field: "blocked_at",
 				},
-				ownerUserId: {
-					type: Sequelize.UUID,
-					allowNull: true,
-					field: "owner_user_id",
-					references: { model: "user", key: "id" },
-					onUpdate: "CASCADE",
-					onDelete: "SET NULL",
-				},
+				// ownerUserId: {
+				// 	type: Sequelize.UUID,
+				// 	allowNull: true,
+				// 	field: "owner_user_id",
+				// 	references: { model: "user", key: "id" },
+				// 	onUpdate: "CASCADE",
+				// 	onDelete: "SET NULL",
+				// },
 			},
 			{ timestamps: false, underscored: true }
 		);
@@ -78,16 +78,16 @@ module.exports = {
 		});
 
 		// unicidade composta (owner_user_id + name)
-		await queryInterface.addConstraint("device", {
-			fields: ["owner_user_id", "name"],
-			type: "unique",
-			name: "ux_device_owner_name", // nome da constraint
-		});
+		// await queryInterface.addConstraint("device", {
+		// 	fields: ["owner_user_id", "name"],
+		// 	type: "unique",
+		// 	name: "ux_device_owner_name", // nome da constraint
+		// });
 	},
 
 	async down(queryInterface, Sequelize) {
 		// remover a constraint composta
-		await queryInterface.removeConstraint("device", "ux_device_owner_name");
+		// await queryInterface.removeConstraint("device", "ux_device_owner_name");
 
 		// remover índices nomeados
 		await queryInterface.removeIndex("device", "ux_device_mac_address");

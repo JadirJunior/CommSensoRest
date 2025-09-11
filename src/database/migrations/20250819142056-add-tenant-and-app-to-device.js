@@ -4,13 +4,21 @@ module.exports = {
 	async up(queryInterface, Sequelize) {
 		await queryInterface.addColumn("device", "tenant_id", {
 			type: Sequelize.DataTypes.UUID,
-			allowNull: true, // depois do backfill você pode mudar p/ false
+			allowNull: true,
 			references: { model: "tenant", key: "id" },
 			onUpdate: "CASCADE",
 			onDelete: "RESTRICT",
 		});
 
 		await queryInterface.addColumn("device", "app_id", {
+			type: Sequelize.DataTypes.UUID,
+			allowNull: true,
+			references: { model: "app", key: "id" },
+			onUpdate: "CASCADE",
+			onDelete: "RESTRICT",
+		});
+
+		await queryInterface.addColumn("container", "app_id", {
 			type: Sequelize.DataTypes.UUID,
 			allowNull: true,
 			references: { model: "app", key: "id" },
