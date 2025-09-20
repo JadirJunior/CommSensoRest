@@ -12,6 +12,10 @@ class Measure extends Model {
 	declare sensorId: number;
 	declare containerId: number;
 	declare deviceId: string | null;
+
+	declare container?: Partial<Container>;
+	declare sensor?: Partial<SensorType>;
+	declare device?: Partial<Device>;
 }
 
 Measure.init(

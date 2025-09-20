@@ -6,7 +6,6 @@ export function verifyBrokerToken(
 	res: Response,
 	next: NextFunction
 ) {
-	console.log("Verifying broker token...");
 	const tokens = (process.env.BROKER_TOKENS || process.env.BROKER_TOKEN || "")
 		.split(",")
 		.map((s) => s.trim())
@@ -14,9 +13,6 @@ export function verifyBrokerToken(
 
 	const m = /^Bearer\s+(.+)$/i.exec((req.header("authorization") || "").trim());
 	const provided = m?.[1]?.trim() || "";
-
-	console.log("Provided token:", provided);
-	console.log("Valid tokens:", tokens);
 
 	if (!provided || tokens.length === 0) {
 		return res.status(401).json({ ok: false });

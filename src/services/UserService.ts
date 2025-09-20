@@ -6,6 +6,14 @@ import { compareHash, generateHash } from "../utils/cripto";
 import { v4 } from "uuid";
 import { createToken } from "../auth/auth";
 import { LoginResponse } from "../utils/dto/types";
+import App from "../database/models/App";
+
+interface GetUserByIdResponse {
+	id: string;
+	username: string;
+	apps: [{ id: string; name: string; slug: string }];
+}
+
 class UserService extends BaseService<User> {
 	protected model: ModelStatic<User> = User;
 
@@ -86,6 +94,31 @@ class UserService extends BaseService<User> {
 			message: "User created",
 			data: safe, // sem password
 		};
+	}
+
+	async getUserById(
+		id: string
+	): Promise<CommSensoResponse<GetUserByIdResponse>> {
+		const result = await this.model.findByPk(id, {
+			include: [
+				{
+					model: App,
+					as: "apps",
+					attributes: ["id", "name", "slug"],
+				},
+			],
+		});
+
+		if (!result) {
+			throw new Error("Not found");
+			// return new CommSensoResponse<M>({ status: 404, message: 'Not found' });
+		}
+
+		return new CommSensoResponse<GetUserByIdResponse>({
+			data: result as unknown as GetUserByIdResponse,
+			status: 200,
+			message: "Listed with successful",
+		});
 	}
 }
 

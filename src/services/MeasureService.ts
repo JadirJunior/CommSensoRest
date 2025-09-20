@@ -1,4 +1,4 @@
-import { col, fn, ModelStatic, Op, where } from "sequelize";
+import { col, fn, ModelStatic, Op, Sequelize, where } from "sequelize";
 import Measure from "../database/models/Measure";
 import { BaseService } from "../base/BaseService";
 import { CommSensoResponse } from "../utils/CommSensoResponse";
@@ -6,6 +6,10 @@ import Container from "../database/models/Container";
 import SensorType from "../database/models/SensorType";
 import dayjs from "dayjs";
 import { GetMeasureResponse } from "../utils/dto/types";
+import ContainerService from "./ContainerService";
+import DeviceService from "./DeviceService";
+import Device from "../database/models/Device";
+import UserService from "./UserService";
 
 interface GetAllMeasuresFilters {
 	limit?: number;
@@ -17,6 +21,15 @@ interface GetAllMeasuresFilters {
 	endDate?: string;
 }
 
+interface CreateMeasureDTO {
+	value: number;
+	dtMeasure: string;
+	sensorId: number;
+	containerId: number;
+	deviceId: number;
+	ctx: { id: string; role: "admin" | "user" | "broker" };
+}
+
 interface MeasureWithAssociations extends Measure {
 	sensor: SensorType;
 	container: Container;
@@ -25,8 +38,77 @@ interface MeasureWithAssociations extends Measure {
 class MeasureService extends BaseService<Measure> {
 	protected model: ModelStatic<Measure> = Measure;
 
-	constructor() {
+	constructor(
+		private readonly containerService: ContainerService,
+		private readonly deviceService: DeviceService,
+		private readonly userService: UserService
+	) {
 		super(Measure);
+	}
+
+	public async createMeasure({
+		containerId,
+		ctx,
+		deviceId,
+		sensorId,
+		value,
+		dtMeasure,
+	}: CreateMeasureDTO): Promise<CommSensoResponse<Measure>> {
+		const containerResponse = await this.containerService.getById(containerId);
+		const containerData = containerResponse.data;
+		const foundContainerId = containerData?.id ?? -1;
+
+		if (ctx.id !== "broker") {
+			return new CommSensoResponse<Measure>({
+				data: undefined,
+				status: 403,
+				message: "Acesso negado. Permissão insuficiente.",
+			});
+		}
+
+		if (foundContainerId === -1) {
+			return new CommSensoResponse<Measure>({
+				data: undefined,
+				status: 404,
+				message: "Container não encontrado",
+			});
+		}
+
+		const deviceResponse = await this.deviceService.getById(deviceId);
+		const deviceData = deviceResponse.data;
+
+		if (!deviceData) {
+			return new CommSensoResponse<Measure>({
+				data: undefined,
+				status: 404,
+				message: "Dispositivo não encontrado",
+				total: 0,
+			});
+		}
+
+		if (containerData?.appId !== deviceData.appId) {
+			return new CommSensoResponse<Measure>({
+				data: undefined,
+				status: 400,
+				message:
+					"O container não pertence ao mesmo aplicativo que o dispositivo.",
+			});
+		}
+
+		const measure = await this.add({
+			value,
+			dtMeasure,
+			sensorId,
+			containerId,
+			deviceId,
+		});
+
+		return new CommSensoResponse<Measure>({
+			data: measure.data,
+			total: 1,
+			status: 201,
+			message: "Medida criada com sucesso.",
+		});
 	}
 
 	public async list(
@@ -82,7 +164,7 @@ class MeasureService extends BaseService<Measure> {
 			{
 				model: Container,
 				as: "container",
-				attributes: ["id", "name", "weigth", "valid"],
+				attributes: ["id", "name", "weight", "valid"],
 				required: !!filters.container,
 			},
 			{
@@ -132,6 +214,112 @@ class MeasureService extends BaseService<Measure> {
 			total: total,
 			status: 200,
 			message: "Medições listadas com sucesso.",
+		});
+	}
+
+	public async getLastMeasuresByContainerId(
+		containerId: number,
+		ctx: { id: string; role: "admin" | "user" | "broker" }
+	): Promise<CommSensoResponse<GetMeasureResponse[]>> {
+		if (ctx.role !== "admin" && ctx.role !== "user") {
+			return new CommSensoResponse<GetMeasureResponse[]>({
+				data: [],
+				status: 403,
+				message: "Acesso negado.",
+				total: 0,
+			});
+		}
+
+		const containerResponse = await this.containerService.getById(containerId);
+		const foundContainerId = containerResponse.data?.id ?? -1;
+
+		if (foundContainerId === -1) {
+			return new CommSensoResponse<GetMeasureResponse[]>({
+				data: [],
+				status: 404,
+				message: "Container não encontrado",
+				total: 0,
+			});
+		}
+
+		const user = await this.userService.getUserById(ctx.id);
+		if (!user.data) {
+			return new CommSensoResponse<GetMeasureResponse[]>({
+				data: [],
+				status: 404,
+				message: "Usuário não encontrado",
+				total: 0,
+			});
+		}
+
+		if (
+			!user.data.apps.some((app) => app.id === containerResponse.data?.appId)
+		) {
+			return new CommSensoResponse<GetMeasureResponse[]>({
+				data: [],
+				status: 403,
+				message: "Acesso negado.",
+				total: 0,
+			});
+		}
+
+		const includeOptions = [
+			{
+				model: Container,
+				as: "container",
+				attributes: ["id", "name", "weight", "valid"],
+				where: { id: containerId },
+				required: true,
+			},
+			{
+				model: SensorType,
+				as: "sensor",
+				attributes: ["id", "name", "unit"],
+				required: true,
+			},
+			{
+				model: Device,
+				as: "device",
+				attributes: ["id", "name"],
+				required: true,
+			},
+		];
+
+		const results = await Measure.findAll({
+			include: includeOptions,
+			where: {
+				dt_measure: {
+					[Op.eq]: Sequelize.literal(`(
+        SELECT MAX(m2.dt_measure)
+        FROM measure m2
+        WHERE m2.sensor_id = "Measure".sensor_id
+      )`),
+				},
+			},
+		});
+
+		const formattedData: GetMeasureResponse[] = results.map((measure) => ({
+			id: measure.id,
+			value: measure.value,
+			dtMeasure: measure.dtMeasure.toISOString(),
+			sensor: {
+				id: measure.sensor?.id ?? 0,
+				name: measure.sensor?.name ?? "",
+				unit: measure.sensor?.unit ?? "",
+			},
+			container: {
+				id: measure.container?.id ?? 0,
+				name: measure.container?.name ?? "",
+				weight: measure.container?.weight ?? 0,
+				valid: measure.container?.valid ?? false,
+			},
+		}));
+
+		return new CommSensoResponse<GetMeasureResponse[]>({
+			data: formattedData,
+			total: formattedData.length,
+			status: 200,
+			message: "Últimas medidas do container por sensor obtidas com sucesso.",
 		});
 	}
 }

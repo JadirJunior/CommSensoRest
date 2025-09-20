@@ -55,7 +55,7 @@ export abstract class BaseService<
 		});
 	}
 
-	public async getById(id: string): Promise<CommSensoResponse<M>> {
+	public async getById(id: string | number): Promise<CommSensoResponse<M>> {
 		const result = await this.model.findByPk(id);
 
 		if (!result) {

@@ -3,6 +3,13 @@ import { BaseController } from "../base/BaseController";
 import Measure from "../database/models/Measure";
 import MeasureService from "../services/MeasureService";
 import ContainerService from "../services/ContainerService";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
+
+import { locale } from "dayjs";
+import DeviceService from "../services/DeviceService";
 
 const validFields = ["value", "dtMeasure", "sensorId", "containerId"] as const;
 type Field = (typeof validFields)[number];
@@ -11,8 +18,7 @@ type Direction = "ASC" | "DESC";
 class MeasureController extends BaseController<Measure> {
 	protected readonly service: MeasureService;
 
-	constructor() {
-		const measureService = new MeasureService();
+	constructor(measureService: MeasureService) {
 		super(measureService);
 		this.service = measureService;
 	}
@@ -23,22 +29,20 @@ class MeasureController extends BaseController<Measure> {
 		next: NextFunction
 	) {
 		try {
-			const { value, dtMeasure, sensorId, container } = req.body;
+			const { value, dtMeasure, sensorId, containerId, deviceId } = req.body;
 
-			const containerService = new ContainerService();
-			const containerResponse = await containerService.getByName(container);
-			const containerId = containerResponse.data?.id ?? -1;
+			const ctx = req.user!;
 
-			if (containerId === -1) {
-				return res.status(404).json({ message: "Container não encontrado" });
-			}
-
-			const { message, status, data, total } = await this.service.add({
-				value,
-				dtMeasure: new Date(dtMeasure),
-				sensorId,
-				containerId,
-			});
+			const { message, status, data, total } = await this.service.createMeasure(
+				{
+					value,
+					dtMeasure,
+					sensorId,
+					containerId,
+					deviceId,
+					ctx,
+				}
+			);
 
 			return res.status(status ?? 200).json({ message, data, total });
 		} catch (error) {
@@ -86,15 +90,29 @@ class MeasureController extends BaseController<Measure> {
 		}
 	}
 
-	// public async search(req: Request, res: Response, next: NextFunction) {
-	//   try {
-	//     // Supondo que seu service tenha um método search, caso contrário, ajuste
-	//     const { message, status, data, total } = await this.service.search(req.body);
-	//     return res.status(status ?? 200).json({ message, data, total });
-	//   } catch (error) {
-	//     next(error);
-	//   }
-	// }
+	public async lastMeasuresByContainer(
+		req: Request,
+		res: Response,
+		next: NextFunction
+	) {
+		try {
+			const containerId = Number(req.params.containerId);
+			if (isNaN(containerId) || containerId <= 0) {
+				return res
+					.status(400)
+					.json({ message: "ID do container inválido. Deve ser um número." });
+			}
+
+			const ctx = req.user!;
+
+			const { message, status, data, total } =
+				await this.service.getLastMeasuresByContainerId(containerId, ctx);
+
+			return res.status(status ?? 200).json({ message, data, total });
+		} catch (error) {
+			next(error);
+		}
+	}
 }
 
 export default MeasureController;

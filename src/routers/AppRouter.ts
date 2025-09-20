@@ -2,8 +2,9 @@ import { Router } from "express";
 import AppController from "../controllers/AppController";
 import AppService from "../services/AppService";
 import { authenticateAdmin } from "../middlewares/authenticate";
+import registry from "../registry";
 
-const control = new AppController(new AppService());
+const control = new AppController(registry.resolve("AppService") as AppService);
 
 const appRouter = Router();
 

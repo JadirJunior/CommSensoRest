@@ -2,8 +2,11 @@ import { Router } from "express";
 import ContainerController from "../controllers/ContainerController";
 import ContainerService from "../services/ContainerService";
 import { authenticateAdmin } from "../middlewares/authenticate";
+import registry from "../registry";
 
-const control = new ContainerController(new ContainerService());
+const control = new ContainerController(
+	registry.resolve("ContainerService") as ContainerService
+);
 
 const containerRouter = Router();
 

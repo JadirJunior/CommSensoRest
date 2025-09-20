@@ -2,8 +2,11 @@ import { Router } from "express";
 
 import UserController from "../controllers/UserController";
 import UserService from "../services/UserService";
+import registry from "../registry";
 
-const control = new UserController(new UserService());
+const control = new UserController(
+	registry.resolve("UserService") as UserService
+);
 
 const userRouter = Router();
 

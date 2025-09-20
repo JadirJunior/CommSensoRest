@@ -7,8 +7,11 @@ import {
 	authenticateUser,
 } from "../middlewares/authenticate";
 import DeviceClaim from "../database/models/DeviceClaim";
+import registry from "../registry";
 
-const control = new DeviceController(new DeviceService(DeviceClaim));
+const control = new DeviceController(
+	registry.resolve("DeviceService") as DeviceService
+);
 
 const deviceRouter = Router();
 

@@ -2,8 +2,11 @@ import { Router } from "express";
 import SensorTypeController from "../controllers/SensorTypeController";
 import SensorTypeService from "../services/SensorTypeService";
 import { authenticateAdmin } from "../middlewares/authenticate";
+import registry from "../registry";
 
-const control = new SensorTypeController(new SensorTypeService());
+const control = new SensorTypeController(
+	registry.resolve("SensorTypeService") as SensorTypeService
+);
 
 const sensorTypeRouter = Router();
 

@@ -5,8 +5,11 @@ import {
 	authenticateAdmin,
 	authenticateUser,
 } from "../middlewares/authenticate";
+import registry from "../registry";
 
-const control = new TenantController(new TenantService());
+const control = new TenantController(
+	registry.resolve("TenantService") as TenantService
+);
 
 const tenantRouter = Router();
 
