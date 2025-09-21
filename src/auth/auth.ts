@@ -7,6 +7,9 @@ export const createToken = (
 ): { accessToken: string; refreshToken: string } => {
 	const information: Omit<User, "password"> = user;
 
+	console.log("Secret: ", process.env.JWT_SECRET);
+	console.log("Refresh Secret: ", process.env.JWT_REFRESH_SECRET);
+
 	if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET)
 		return { accessToken: "", refreshToken: "" };
 
