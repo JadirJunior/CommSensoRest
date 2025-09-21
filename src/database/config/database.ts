@@ -1,6 +1,5 @@
-import { Sequelize, Options } from "sequelize";
-
-require("dotenv").config();
+import "dotenv/config";
+import { Options } from "sequelize";
 
 const {
 	DATABASE_HOST,
@@ -11,21 +10,12 @@ const {
 } = process.env;
 
 const config: Options = {
+	username: DATABASE_USERNAME || "postgres",
+	password: DATABASE_PASSWORD || "admin",
+	database: DATABASE || "commsensodb",
+	host: DATABASE_HOST || "localhost",
+	port: Number(DATABASE_PORT) || 5432,
 	dialect: "postgres",
-	host: DATABASE_HOST,
-	port: Number(DATABASE_PORT),
-	username: DATABASE_USERNAME,
-	password: DATABASE_PASSWORD,
-	database: DATABASE,
-	define: {
-		timestamps: true,
-		freezeTableName: true,
-		underscored: false,
-	},
-	dialectOptions: {
-		timezone: "-03:00",
-	},
-	timezone: "-03:00",
 };
 
-export default config;
+export = config;
