@@ -10,6 +10,8 @@ export const createToken = (
 	if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET)
 		return { accessToken: "", refreshToken: "" };
 
+	console.log("Encontrou as chaves JWT");
+
 	const accessToken = jwt.sign({ user: information }, process.env.JWT_SECRET, {
 		expiresIn: "1h", // 1 hora de expiração
 	});
