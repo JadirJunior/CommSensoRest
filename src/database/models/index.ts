@@ -1,5 +1,4 @@
-import { Sequelize } from 'sequelize'
-import * as config from '../config/database'
+import { Sequelize } from "sequelize";
+import sequelizeConnection from "../../config/databaseConfig";
 
-export default new Sequelize(config)
-
+export default sequelizeConnection;

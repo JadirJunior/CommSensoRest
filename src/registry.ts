@@ -30,15 +30,16 @@ registry.register("AppService", new AppService());
 registry.register("ContainerService", new ContainerService());
 registry.register("DeviceClaimService", new DeviceClaimService());
 registry.register("DeviceService", new DeviceService(DeviceClaim));
+registry.register("UserService", new UserService());
 registry.register(
 	"MeasureService",
 	new MeasureService(
 		registry.resolve("ContainerService") as ContainerService,
-		registry.resolve("DeviceService") as DeviceService
+		registry.resolve("DeviceService") as DeviceService,
+		registry.resolve("UserService") as UserService
 	)
 );
 registry.register("SensorTypeService", new SensorTypeService());
 registry.register("TenantService", new TenantService());
-registry.register("UserService", new UserService());
 
 export default registry;
